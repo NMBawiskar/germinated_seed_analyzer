@@ -1,4 +1,16 @@
 import cv2
+import numpy as np
+from skimage.morphology import skeletonize
+from skimage.util import img_as_float, img_as_ubyte
+from utils import *
+from shapely import ops, geometry
+import matplotlib.pyplot as plt
+
+
+def plot_line(ax, ob, color):
+    x, y = ob.xy
+    ax.plot(x, y, color=color, alpha=0.7, linewidth=3, 
+            solid_capstyle='round', zorder=2)
 
 class ContourProcessor:
     def __init__(self, imgBinary):
@@ -8,14 +20,21 @@ class ContourProcessor:
         self.shortlisted_contours = []
         ############
 
+        self.binaryImgShortlistedCnt =None
+
         self.__get_img_prop()
         self.preprocess_thresholded_img()
         self.__findContours()
+        self.__draw_shortlisted_contours_binary()
 
     def __get_img_prop(self):
         self.imgH, self.imgW = self.binaryImgRaw.shape[:2]
 
-
+    def __draw_shortlisted_contours_binary(self):
+        self.binaryImgShortlistedCnt = np.zeros_like(self.binaryImgRaw)
+        for cnt in self.shortlisted_contours:
+            cv2.drawContours(self.binaryImgShortlistedCnt, [cnt], -1, 255, -1)
+        
 
     def __findContours(self):
         contours, heirarchy = cv2.findContours(self.binaryImgRaw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -25,10 +44,10 @@ class ContourProcessor:
             area = cv2.contourArea(cnt)
             if w > 0.75 * self.imgW or h >0.75 * self.imgH:
                 continue
-            elif area <1000:
+            elif area <500:
                 continue
             else:
-                print("area",area)
+                # print("area",area)
                 self.shortlisted_contours.append(cnt)
 
         print("Shortlisted contours :",len(self.shortlisted_contours))
@@ -43,7 +62,114 @@ class ContourProcessor:
 
         return imgColor
 
+    def get_skeleton_img(self):
+        self.__draw_shortlisted_contours_binary()
+        skImg = img_as_float(self.binaryImgShortlistedCnt)
+        skeltonized = skeletonize(skImg)
+        skeltonized = img_as_ubyte(skeltonized)
+        display_img('binaryImg',self.binaryImgShortlistedCnt)
+        display_img('skeleton',skeltonized)
 
-class Seed:
-    def __init__(self) -> None:
-        pass
+class Seed():
+    def __init__(self, xywh, imgBinarySeed, imgBinaryHeadOnly):
+        self.imgBinarySeed = imgBinarySeed
+        self.imgBinaryHead = imgBinaryHeadOnly
+        self.xywh = xywh  ## Location of seed in image
+
+        ####################################
+        self.cropped_head_binary = None
+        self.cropped_seed_binary = None
+        self.imgBinarySeedWoHead = None
+        self.skeltonized = None
+        self.remove_head()
+
+    def remove_head(self):
+        self.cropped_head_binary = cropImg(self.imgBinaryHead, self.xywh)
+        self.cropped_seed_binary = cropImg(self.imgBinarySeed, self.xywh)
+        self.imgBinarySeedWoHead = cv2.subtract(self.cropped_seed_binary, self.cropped_head_binary)
+
+    def show_comparison(self):
+        result_img = np.hstack((self.cropped_seed_binary, self.cropped_head_binary, self.imgBinarySeedWoHead))
+        display_img("Removed Head", result_img)
+        cv2.waitKey(-1)
+
+    def morph_head_img(self):
+        for i in range(1,5):
+            kernel_ = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, ksize=(7,7))
+            morphed_ = cv2.dilate(self.cropped_head_binary, kernel=kernel_, iterations=i)
+            self.cropped_head_binary = morphed_
+            self.imgBinarySeedWoHead = cv2.subtract(self.cropped_seed_binary, self.cropped_head_binary)
+            
+            contours, heirarchy = cv2.findContours(self.cropped_head_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+            maxAreaCnt = max(contours, key=cv2.contourArea)
+            maxArea = cv2.contourArea(maxAreaCnt)
+            print(f"kernel 7x7 maxArea {maxArea} iteration {i}")
+            # self.show_comparison()
+            if maxArea >4000:
+                break
+        self.getMaxLengthContour()
+
+    def getMaxLengthContour(self):
+        contours, heirarchy = cv2.findContours(self.imgBinarySeedWoHead, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        if len(contours)>0:
+            maxArcLengthCnt = None
+            maxArcLength = 0
+            for cnt in contours:
+                arcLengthCnt = cv2.arcLength(cnt, closed=True)
+                if arcLengthCnt > maxArcLength:
+                    maxArcLengthCnt = cnt
+                    maxArcLength = arcLengthCnt
+
+
+            imgBinaryNew = np.zeros_like(self.imgBinarySeedWoHead)
+            cv2.drawContours(imgBinaryNew, [maxArcLengthCnt],-1, 255, -1)
+            self.imgBinarySeedWoHead = imgBinaryNew
+
+        display_img("Final root img", self.imgBinarySeedWoHead)
+        cv2.waitKey(-1)
+
+    def skeletonize_root(self):
+
+        skImg = img_as_float(self.imgBinarySeedWoHead)
+        skeltonized = skeletonize(skImg)
+        self.skeltonized = img_as_ubyte(skeltonized)
+        skelton_result = np.hstack((self.imgBinarySeedWoHead, self.skeltonized))
+        display_img('Skeletonized root',skelton_result)
+
+
+    def make_offset(self):
+        skeleton_copy = self.skeltonized.copy()
+        intersection_points, line_end_points = get_line_endpoints_intersections(img_np_array=self.skeltonized)
+        
+        pixels = np.argwhere(self.skeltonized==255)
+        pixels = pixels[...,[1,0]]
+        
+        h_sk, w_sk = self.skeltonized.shape[:2]
+        pixels[:,1] = h_sk - pixels[:,1]
+
+        pixels = pixels.tolist()
+        # print(pixels)
+        if len(pixels)>0:
+            line  = geometry.LineString(pixels)
+            offset_left = line.parallel_offset(1, 'left', join_style=1)
+            offset_right = line.parallel_offset(1, 'right', join_style=1)
+
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            # plot_line(ax, line, "blue")
+            # plot_line(ax, offset_left, "green")
+            # plot_line(ax, offset_right, "purple")
+            # plt.show()
+
+        for endpoint in line_end_points:
+            y,x = endpoint
+            cv2.circle(skeleton_copy, (x,y),3,255,1)
+
+
+        for intersection_point in intersection_points:
+            y,x = intersection_point
+            cv2.circle(skeleton_copy, (x,y),3,255,1)
+            cv2.circle(skeleton_copy, (x,y),5,255,1)
+        
+        cv2.imshow("ENdpoints Intersections", skeleton_copy)
+        cv2.waitKey(-1)

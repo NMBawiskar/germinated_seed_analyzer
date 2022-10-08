@@ -17,3 +17,68 @@ def get_Concat_img_with_hsv_mask(img, hsvMask1Ch):
     mask3ch = cv2.merge((hsvMask1Ch, hsvMask1Ch, hsvMask1Ch))
     maskConcat = np.hstack((img, mask3ch))
     return maskConcat
+
+def display_img(title,img):
+    cv2.namedWindow(title,cv2.WINDOW_NORMAL)
+    cv2.imshow(title,img)
+
+
+def get_contour_center(contour):
+    x,y,w,h = cv2.boundingRect(contour)
+    c_x = int(x+ w/2)
+    c_y = int(y+h/2)
+    return (c_x, c_y)
+
+def check_if_point_lies_in_contour(point, point_format:"yx" ,contour):
+    """point(y,x)
+    point_format = "yx"or "xy"
+     """
+    
+    if point_format=='xy':
+        x,y = point
+        pointNew = (y,x)
+        point_to_parse = pointNew
+    else:
+        point_to_parse = point
+
+    result = cv2.pointPolygonTest(contour, point_to_parse, False)
+    print(result)
+
+    if result>=0:
+        ## Point inside contour
+        return True
+    else:
+        ## Point outside contour
+        return False
+
+
+def cropImg(img, tuple_xywh):
+    x,y,w,h = tuple_xywh
+    cropped = img[y:y+h, x:x+w]
+    return cropped 
+    
+
+def get_line_endpoints_intersections(img_np_array):
+    whitepixels = np.argwhere(img_np_array==255)
+    
+    isolated_points = []  ## having only one white count(itselt)
+    line_end_points = [] ## having two white count(itselt)
+    continuous_line_points = [] ## having three white count(itselt)
+    intersetion_points = [] ## having > three white count(itselt)
+
+    for i_row,j_col in whitepixels:
+        cropped_window = img_np_array[i_row-1:i_row+2,j_col-1:j_col+2]
+        
+        count_whites = np.sum(cropped_window==255)
+        if count_whites ==1:
+            isolated_points.append([i_row,j_col])
+        elif count_whites==2:
+            line_end_points.append([i_row,j_col])
+        elif count_whites==3:
+            continuous_line_points.append([i_row,j_col])
+        elif count_whites>3:
+            intersetion_points.append([i_row,j_col])
+    print(f"Total points {whitepixels.shape}")
+    print(f"Intersection_points ={len(intersetion_points)}, endpoints = {len(line_end_points)}, continuous line points = {len(continuous_line_points)}, isolated point = {len(isolated_points)}")
+
+    return [intersetion_points, line_end_points]
