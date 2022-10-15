@@ -28,7 +28,7 @@ def main(img_path):
 
 
 
-    ############### 1. get seed head masks
+    ############### 1. get complete seed masks
     hsv_values_seed = 0,127,0,255,0,172
     hsvMask_seed = get_HSV_mask(img, hsv_values=hsv_values_seed)    
     maskConcatSeed = get_Concat_img_with_hsv_mask(img, hsvMask_seed)

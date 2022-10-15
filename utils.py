@@ -58,8 +58,8 @@ def cropImg(img, tuple_xywh):
     return cropped 
     
 
-def get_line_endpoints_intersections(img_np_array):
-    whitepixels = np.argwhere(img_np_array==255)
+def get_line_endpoints_intersections(skeletonized_img_np_array):
+    whitepixels = np.argwhere(skeletonized_img_np_array==255)
     
     isolated_points = []  ## having only one white count(itselt)
     line_end_points = [] ## having two white count(itselt)
@@ -67,8 +67,7 @@ def get_line_endpoints_intersections(img_np_array):
     intersetion_points = [] ## having > three white count(itselt)
 
     for i_row,j_col in whitepixels:
-        cropped_window = img_np_array[i_row-1:i_row+2,j_col-1:j_col+2]
-        
+        cropped_window = skeletonized_img_np_array[i_row-1:i_row+2,j_col-1:j_col+2]        
         count_whites = np.sum(cropped_window==255)
         if count_whites ==1:
             isolated_points.append([i_row,j_col])
@@ -78,7 +77,17 @@ def get_line_endpoints_intersections(img_np_array):
             continuous_line_points.append([i_row,j_col])
         elif count_whites>3:
             intersetion_points.append([i_row,j_col])
+
     print(f"Total points {whitepixels.shape}")
     print(f"Intersection_points ={len(intersetion_points)}, endpoints = {len(line_end_points)}, continuous line points = {len(continuous_line_points)}, isolated point = {len(isolated_points)}")
 
     return [intersetion_points, line_end_points]
+
+def get_seperate_lines_from_intersections(skeletonized_img_np_array, intersection_points):
+    
+    for intersection_pnt in intersection_points:
+        y,x = intersection_pnt
+        skeletonized_img_np_array[y,x] = 0
+    
+    cv2.imshow('skeletonized_img_np_array',skeletonized_img_np_array)
+

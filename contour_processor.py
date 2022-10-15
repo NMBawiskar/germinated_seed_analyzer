@@ -139,7 +139,8 @@ class Seed():
 
     def make_offset(self):
         skeleton_copy = self.skeltonized.copy()
-        intersection_points, line_end_points = get_line_endpoints_intersections(img_np_array=self.skeltonized)
+        skeleton_copy2 = self.skeltonized.copy()
+        intersection_points, line_end_points = get_line_endpoints_intersections(skeletonized_img_np_array=self.skeltonized)
         
         pixels = np.argwhere(self.skeltonized==255)
         pixels = pixels[...,[1,0]]
@@ -164,7 +165,7 @@ class Seed():
         for endpoint in line_end_points:
             y,x = endpoint
             cv2.circle(skeleton_copy, (x,y),3,255,1)
-
+        get_seperate_lines_from_intersections(skeleton_copy2, intersection_points)
 
         for intersection_point in intersection_points:
             y,x = intersection_point
