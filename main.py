@@ -11,20 +11,24 @@ def main(img_path):
     img = cv2.imread(img_path)
     result = img.copy()
 
+    ############### INPUT parameters for tuning ##################
+    n_segments_each_skeleton = 15           # divisions to make in each length (Increase this for finer results)
+    thres_avg_max_radicle_thickness = 13    # avg thickness to distinguish radicle (tune this if camera position changes)
+    ####################################################################
+
+
     ############### 1. get seed head masks
     hsv_values_seed_heads = 0,127,0,255,0,34 
     hsvMask_seed_heads = get_HSV_mask(img, hsv_values=hsv_values_seed_heads)    
     maskConcat = get_Concat_img_with_hsv_mask(img, hsvMask_seed_heads)
     # display_img('Result_heads', maskConcat)
-    contourProcessor_heads = ContourProcessor(imgBinary=hsvMask_seed_heads)
+    contourProcessor_heads = ContourProcessor(imgBinary=hsvMask_seed_heads, colorImg = result)
 
     shortListed_headsContours = contourProcessor_heads.shortlisted_contours
     list_Head_centers = list(map(get_contour_center, shortListed_headsContours))
     print(list_Head_centers)
 
 
-    # result_cnt_drawn_heads = contourProcessor_heads.display_shortlisted_contours(imgColor=img)
-    # display_img('result_cnt_drawn_heads',result_cnt_drawn_heads)
 
 
 
@@ -34,7 +38,7 @@ def main(img_path):
     maskConcatSeed = get_Concat_img_with_hsv_mask(img, hsvMask_seed)
     # display_img('Result_seed', maskConcatSeed)
 
-    contourProcessor = ContourProcessor(imgBinary=hsvMask_seed)
+    contourProcessor = ContourProcessor(imgBinary=hsvMask_seed, colorImg = result)
    
 
 
@@ -66,20 +70,26 @@ def main(img_path):
 
     contourProcessor.shortlisted_contours = final_shortListedCnts    
     result_cnt_drawn =contourProcessor.display_shortlisted_contours(imgColor=img)
-    display_img('drawnContours', result_cnt_drawn)
+    # display_img('drawnContours', result_cnt_drawn)
     contourProcessor.get_skeleton_img()
 
     ################## Creating SEED object list ##################
     SeedObjList = []
     for i in range(len(xywh_list_final)):
         SeedObject = Seed(xywh=xywh_list_final[i], imgBinarySeed=hsvMask_seed, 
-            imgBinaryHeadOnly=contourProcessor_heads.binaryImgShortlistedCnt)
+            imgBinaryHeadOnly=contourProcessor_heads.binaryImgShortlistedCnt,
+            imgColor = contourProcessor.colorImg,
+            n_segments_each_skeleton = n_segments_each_skeleton,
+            thres_avg_max_radicle_thickness = thres_avg_max_radicle_thickness
+            )
 
         SeedObjList.append(SeedObject)
         SeedObject.morph_head_img()
         SeedObject.skeletonize_root()
-        SeedObject.make_offset()
+        # SeedObject.make_offset()
+        SeedObject.analyzeSkeleton()
 
+        
 
     cv2.waitKey(-1)
     

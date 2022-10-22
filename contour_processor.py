@@ -5,7 +5,7 @@ from skimage.util import img_as_float, img_as_ubyte
 from utils import *
 from shapely import ops, geometry
 import matplotlib.pyplot as plt
-
+from skeletonGeneratorAnalyzer import SkeltonizerContour
 
 def plot_line(ax, ob, color):
     x, y = ob.xy
@@ -13,8 +13,10 @@ def plot_line(ax, ob, color):
             solid_capstyle='round', zorder=2)
 
 class ContourProcessor:
-    def __init__(self, imgBinary):
+    def __init__(self, imgBinary, colorImg):
         self.binaryImgRaw = imgBinary
+        self.colorImg = colorImg
+        
 
         ############
         self.shortlisted_contours = []
@@ -71,10 +73,14 @@ class ContourProcessor:
         display_img('skeleton',skeltonized)
 
 class Seed():
-    def __init__(self, xywh, imgBinarySeed, imgBinaryHeadOnly):
+    def __init__(self, xywh, imgBinarySeed, imgBinaryHeadOnly, imgColor, n_segments_each_skeleton=15,
+                        thres_avg_max_radicle_thickness=12):
         self.imgBinarySeed = imgBinarySeed
         self.imgBinaryHead = imgBinaryHeadOnly
+        self.colorImg = imgColor
         self.xywh = xywh  ## Location of seed in image
+        self.n_segments_each_skeleton = n_segments_each_skeleton    # divisions to make in each length
+        self.thres_avg_max_radicle_thickness = thres_avg_max_radicle_thickness # avg thickness to distinguish radicle and hypercotyl
 
         ####################################
         self.cropped_head_binary = None
@@ -86,12 +92,13 @@ class Seed():
     def remove_head(self):
         self.cropped_head_binary = cropImg(self.imgBinaryHead, self.xywh)
         self.cropped_seed_binary = cropImg(self.imgBinarySeed, self.xywh)
+        self.cropped_seed_color = cropImg(self.colorImg, self.xywh)
         self.imgBinarySeedWoHead = cv2.subtract(self.cropped_seed_binary, self.cropped_head_binary)
 
     def show_comparison(self):
         result_img = np.hstack((self.cropped_seed_binary, self.cropped_head_binary, self.imgBinarySeedWoHead))
         display_img("Removed Head", result_img)
-        cv2.waitKey(-1)
+        # cv2.waitKey(-1)
 
     def morph_head_img(self):
         for i in range(1,5):
@@ -103,7 +110,7 @@ class Seed():
             contours, heirarchy = cv2.findContours(self.cropped_head_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
             maxAreaCnt = max(contours, key=cv2.contourArea)
             maxArea = cv2.contourArea(maxAreaCnt)
-            print(f"kernel 7x7 maxArea {maxArea} iteration {i}")
+            # print(f"kernel 7x7 maxArea {maxArea} iteration {i}")
             # self.show_comparison()
             if maxArea >4000:
                 break
@@ -126,7 +133,7 @@ class Seed():
             self.imgBinarySeedWoHead = imgBinaryNew
 
         display_img("Final root img", self.imgBinarySeedWoHead)
-        cv2.waitKey(-1)
+        # cv2.waitKey(-1)
 
     def skeletonize_root(self):
 
@@ -137,9 +144,21 @@ class Seed():
         display_img('Skeletonized root',skelton_result)
 
 
+    def analyzeSkeleton(self):
+        skeletonAnayzer = SkeltonizerContour(self.imgBinarySeedWoHead, colorImg = self.cropped_seed_color, 
+                n_segments_each_skeleton=self.n_segments_each_skeleton, 
+                thres_avg_max_radicle_thickness=self.thres_avg_max_radicle_thickness)
+        skeletonAnayzer.get_line_endpoints_intersections()
+        skeletonAnayzer.seperate_each_branch_of_skeleton()
+
+        print("-"*20)
+
+
+
     def make_offset(self):
         skeleton_copy = self.skeltonized.copy()
         skeleton_copy2 = self.skeltonized.copy()
+
         intersection_points, line_end_points = get_line_endpoints_intersections(skeletonized_img_np_array=self.skeltonized)
         
         pixels = np.argwhere(self.skeltonized==255)
@@ -165,6 +184,7 @@ class Seed():
         for endpoint in line_end_points:
             y,x = endpoint
             cv2.circle(skeleton_copy, (x,y),3,255,1)
+        
         get_seperate_lines_from_intersections(skeleton_copy2, intersection_points)
 
         for intersection_point in intersection_points:
@@ -173,4 +193,4 @@ class Seed():
             cv2.circle(skeleton_copy, (x,y),5,255,1)
         
         cv2.imshow("ENdpoints Intersections", skeleton_copy)
-        cv2.waitKey(-1)
+        # cv2.waitKey(-1)

@@ -54,7 +54,7 @@ def check_if_point_lies_in_contour(point, point_format:"yx" ,contour):
 
 def cropImg(img, tuple_xywh):
     x,y,w,h = tuple_xywh
-    cropped = img[y:y+h, x:x+w]
+    cropped = img[y:y+h+1, x:x+w+1]
     return cropped 
     
 
