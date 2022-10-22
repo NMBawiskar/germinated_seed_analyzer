@@ -91,3 +91,10 @@ def get_seperate_lines_from_intersections(skeletonized_img_np_array, intersectio
     
     cv2.imshow('skeletonized_img_np_array',skeletonized_img_np_array)
 
+
+def find_dist(pt1, pt2):
+    y1,x1 = pt1
+    y2,x2 = pt2
+
+    dist = ((y2-y1)**2 + (x2-x1)**2)**(1/2)
+    return dist

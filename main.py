@@ -75,6 +75,7 @@ def main(img_path):
 
     ################## Creating SEED object list ##################
     SeedObjList = []
+    list_hypercotyl_radicle_lengths = []
     for i in range(len(xywh_list_final)):
         SeedObject = Seed(xywh=xywh_list_final[i], imgBinarySeed=hsvMask_seed, 
             imgBinaryHeadOnly=contourProcessor_heads.binaryImgShortlistedCnt,
@@ -88,8 +89,15 @@ def main(img_path):
         SeedObject.skeletonize_root()
         # SeedObject.make_offset()
         SeedObject.analyzeSkeleton()
+        list_hypercotyl_radicle_lengths.append([SeedObject.hyperCotyl_length_pixels,SeedObject.radicle_length_pixels])
 
-        
+    print()   
+    print("#"*50)
+    print("FINAL RESULT")
+    print("HYPERCOTYL AND RADICLE LENGTHS FOR IMAGE ", imageName)
+    print("RESULT",list_hypercotyl_radicle_lengths)
+    print("#"*50)
+    print()
 
     cv2.waitKey(-1)
     

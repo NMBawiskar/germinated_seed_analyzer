@@ -87,6 +87,10 @@ class Seed():
         self.cropped_seed_binary = None
         self.imgBinarySeedWoHead = None
         self.skeltonized = None
+
+        self.hyperCotyl_length_pixels = 0
+        self.radicle_length_pixels = 0
+
         self.remove_head()
 
     def remove_head(self):
@@ -150,6 +154,9 @@ class Seed():
                 thres_avg_max_radicle_thickness=self.thres_avg_max_radicle_thickness)
         skeletonAnayzer.get_line_endpoints_intersections()
         skeletonAnayzer.seperate_each_branch_of_skeleton()
+        
+        self.hyperCotyl_length_pixels = skeletonAnayzer.hyperCotyl_length_pixels
+        self.radicle_length_pixels = skeletonAnayzer.radicle_length_pixels
 
         print("-"*20)
 

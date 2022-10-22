@@ -3,7 +3,7 @@ from skimage.util import img_as_float, img_as_ubyte
 from utils import display_img
 import numpy as np
 import cv2
-
+from branchClass import Branch, BranchList
 
 class SkeltonizerContour:
 
@@ -25,6 +25,8 @@ class SkeltonizerContour:
 
         self.branch_list = []
 
+        self.hyperCotyl_length_pixels = 0
+        self.radicle_length_pixels = 0
 
 
     def getSkeltonImg(self):
@@ -120,14 +122,14 @@ class SkeltonizerContour:
         # branch = np.roll(branch, 1)
         # singlBranchImg = cv2.drawContours(singlBranchImg, [branch], -1, 255 , 1)
         # branch = np.roll(branch, 1)
-        print("singlBranchImg shape",singlBranchImg.shape)
-        print("np.max",np.max(branch,axis=0))
-        print("np.min",np.min(branch,axis=0))
+        # print("singlBranchImg shape",singlBranchImg.shape)
+        # print("np.max",np.max(branch,axis=0))
+        # print("np.min",np.min(branch,axis=0))
         for i_row, j_col in branch:            
             singlBranchImg[i_row,j_col] = 255
             
-        cv2.imshow('singlBranchImg',singlBranchImg)
-        cv2.waitKey(-1)
+        # cv2.imshow('singlBranchImg',singlBranchImg)
+        # cv2.waitKey(-1)
         branchEndpoints = []
 
         count_whitesMaxFound = -1
@@ -204,6 +206,7 @@ class SkeltonizerContour:
         list_segment_avg_thickness = []
 
         isSegmentRadicle = True
+        
         for segment in segmentList:
             newImg = np.zeros_like(self.skeltonized, np.uint8)
             # newImg = cv2.drawContours(newImg, [segment], -1,255,1)
@@ -225,9 +228,10 @@ class SkeltonizerContour:
                     
                 if isSegmentRadicle:
                     self.colorImg[i,j] = (255,0,0)
+                    self.radicle_length_pixels+=1
                 else:
                     self.colorImg[i,j] = (0,255,0)
-
+                    self.hyperCotyl_length_pixels+=1
             
 
             print("Average segment thickenss", list_segment_avg_thickness)
@@ -350,10 +354,41 @@ class SkeltonizerContour:
 
         else:
             ##### remove small branches to keep single branch only
+            branchListObj = BranchList(self.skeltonized) 
             
-            self.__remove_small_branches_to_keep_single_branch_only()
+            for i, branchPoints in enumerate(self.list_each_branch_points):
+                branchObj = Branch(branchRandomPointList_yx=branchPoints, 
+                    allBranchSkeletonBinaryImg=self.skeltonized , branchNo=i)
+                branchListObj.append(branchObj)
+
             
 
+
+            # list_branch_results = [self.__sort_branch_bottom_up(branchPoints) for branchPoints in self.list_each_branch_points ]           
+            print("Details of each branch as follows ")
+            
+
+            
+            for branchObj in branchListObj:
+             
+                branchObj.print_branch_details()
+            
+            branchListObj.getClosestBranchListEndpointWise()
+            branchListObj.print_adj_branch_dict()
+            branchListObj.shortList_Branches_for_single()
+            finalImgWithShortlistedBranchesOnly = branchListObj.get_final_single_path_binary_image()
+
+            ### CREATE BRANCH OBJECT FINAL SINGLE LENGTH WITH binaryImgSinglelineBranch
+            
+            
+            branchFinalSingleLine = Branch.from_singlBranchImg(singleBranchBinaryImg=finalImgWithShortlistedBranchesOnly,
+                        allBranchSkeletonBinaryImg=self.skeltonized, branchNo=-1)
+            
+            
+            
+            self.__divide_final_branch_and_analyse_lengths(branchFinalSingleLine.sortedPointList, 
+                                    branchFinalSingleLine.singlBranchImg)
+            
 
 
 
