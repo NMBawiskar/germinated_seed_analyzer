@@ -35,7 +35,7 @@ class SkeltonizerContour:
         skeltonized = skeletonize(skImg)
         self.skeltonized = img_as_ubyte(skeltonized)
         skelton_result = np.hstack((self.inputImgBinary, self.skeltonized))
-        display_img('Skeletonized root',skelton_result)
+        # display_img('Skeletonized root',skelton_result)
 
         return self.skeltonized
 
@@ -62,9 +62,9 @@ class SkeltonizerContour:
             elif count_whites>3:
                 self.list_intersetion_points.append([i_row,j_col])
 
-        print(f"Total points {whitepixels.shape}")
-        print(f"Intersection_points ={len(self.list_intersetion_points)}, endpoints = {len(self.list_line_end_points)}, \
-             continuous line points = {len(self.list_continuous_line_points)}, isolated point = {len(self.list_isolated_points)}")
+        # print(f"Total points {whitepixels.shape}")
+        # print(f"Intersection_points ={len(self.list_intersetion_points)}, endpoints = {len(self.list_line_end_points)}, \
+            # continuous line points = {len(self.list_continuous_line_points)}, isolated point = {len(self.list_isolated_points)}")
 
         return [self.list_intersetion_points, self.list_line_end_points]
 
@@ -107,7 +107,7 @@ class SkeltonizerContour:
 
 
         self.binaryImgBrokenBranches = newSkeleton
-        print(f'len contours or braches found',len(contours))
+        # print(f'len contours or braches found',len(contours))
 
         self.__analyze_each_brach()
 
@@ -118,7 +118,7 @@ class SkeltonizerContour:
         """
         singlBranchImg = np.zeros_like(self.skeltonized, dtype=np.uint8)
         branch = np.array(branchPointList_yx)
-        print(branch.shape)
+        # print(branch.shape)
         # branch = np.roll(branch, 1)
         # singlBranchImg = cv2.drawContours(singlBranchImg, [branch], -1, 255 , 1)
         # branch = np.roll(branch, 1)
@@ -145,12 +145,12 @@ class SkeltonizerContour:
             if count_whites>count_whitesMaxFound:
                 count_whitesMaxFound = count_whites
 
-        print(f"count_white found minimum count {count_whiteMinFound} max found {count_whitesMaxFound}")
+        # print(f"count_white found minimum count {count_whiteMinFound} max found {count_whitesMaxFound}")
         
         endpoints = np.array(branchEndpoints)
 
         btmMostEndpnt = endpoints[np.argmax(endpoints[:,0], axis=0)]
-        print(btmMostEndpnt, endpoints)
+        # print(btmMostEndpnt, endpoints)
 
 
         sortedPointList = []
@@ -186,7 +186,7 @@ class SkeltonizerContour:
         
         total_pixels_branch = len(sortedBranchPointList)
         div_length = total_pixels_branch // self.n_breakPoints
-        print(f"total_pixels_branch {total_pixels_branch} div_length {div_length}")
+        # print(f"total_pixels_branch {total_pixels_branch} div_length {div_length}")
         breakPointList = []
 
         segmentList = []
@@ -234,10 +234,10 @@ class SkeltonizerContour:
                     self.hyperCotyl_length_pixels+=1
             
 
-            print("Average segment thickenss", list_segment_avg_thickness)
+            # print("Average segment thickenss", list_segment_avg_thickness)
             hconcat = np.hstack((partSegment,newImg))
-            cv2.imshow("ResultSEED",self.colorImg)
-            cv2.imshow("newImg",hconcat)
+            # cv2.imshow("ResultSEED",self.colorImg)
+            # cv2.imshow("newImg",hconcat)
             # cv2.waitKey(-1)
 
             
@@ -249,13 +249,13 @@ class SkeltonizerContour:
             3. Again join the selected two branches and repeat above steps """
 
         # 1. Get max length branch. sort its points bottom up
-        print("self.branch_list.shape",len(self.branch_list))
+        # print("self.branch_list.shape",len(self.branch_list))
 
         branch_point_lists = self.list_each_branch_points.copy()
         shortlisted_indices = []
 
         branch_lengths = [len(branchPoints) for branchPoints in branch_point_lists]
-        print("Branch lengths",branch_lengths)
+        # print("Branch lengths",branch_lengths)
         
         maxBranchLengthIndex = branch_lengths.index(max(branch_lengths))
         shortlisted_indices.append(maxBranchLengthIndex)
@@ -292,10 +292,10 @@ class SkeltonizerContour:
 
             if len(adjascent_branch_list)>2:
                 list_length_adjascent_branch = [len(branch) for branch in adjascent_branch_list]
-                print(f"adjascent branch list_length for endpoint {endpoint} is {list_length_adjascent_branch}")
+                # print(f"adjascent branch list_length for endpoint {endpoint} is {list_length_adjascent_branch}")
 
                 adjsacent_max_length_brach = max(adjascent_branch_list, key=len)
-                print()
+                # print()
 
     
 
@@ -321,8 +321,6 @@ class SkeltonizerContour:
             singlBranchImg1, sortedPointList1, enpointsBtmUp1, btmMostEndpnt1 = self.__sort_branch_bottom_up(branchPointList_yx=branchPointList1)
             singlBranchImg2, sortedPointList2, enpointsBtmUp2, btmMostEndpnt2 = self.__sort_branch_bottom_up(branchPointList_yx=branchPointList2)
 
-            print("enpointsBtmUp1",enpointsBtmUp1)
-            print("enpointsBtmUp2",enpointsBtmUp2)
             totalSortedPoints = []
             if enpointsBtmUp1[0][0] < enpointsBtmUp2[0][0]:
                 ## then join
@@ -336,8 +334,6 @@ class SkeltonizerContour:
                 totalSortedPoints.extend(sortedPointList2)
                 totalSortedPoints.extend(sortedPointList1)
 
-            print("topEndPnt1_btm_cnt",topEndPnt1_btm_cnt)
-            print("btmEndPnt2_top_cnt",btmEndPnt2_top_cnt)
             y1,x1 = topEndPnt1_btm_cnt
             y2,x2 = btmEndPnt2_top_cnt
 
@@ -345,8 +341,8 @@ class SkeltonizerContour:
             combined = singlBranchImg1 + singlBranchImg2
             
             cv2.line(combined,(x1,y1), (x2,y2), 255, 1)
-            cv2.imshow("combined",combined)
-            cv2.waitKey(-1)
+            # cv2.imshow("combined",combined)
+            # cv2.waitKey(-1)
 
             self.__divide_final_branch_and_analyse_lengths(totalSortedPoints, combined)
 
@@ -365,16 +361,16 @@ class SkeltonizerContour:
 
 
             # list_branch_results = [self.__sort_branch_bottom_up(branchPoints) for branchPoints in self.list_each_branch_points ]           
-            print("Details of each branch as follows ")
+            # print("Details of each branch as follows ")
             
 
             
-            for branchObj in branchListObj:
+            # for branchObj in branchListObj:
              
-                branchObj.print_branch_details()
+            #     branchObj.print_branch_details()
             
             branchListObj.getClosestBranchListEndpointWise()
-            branchListObj.print_adj_branch_dict()
+            # branchListObj.print_adj_branch_dict()
             branchListObj.shortList_Branches_for_single()
             finalImgWithShortlistedBranchesOnly = branchListObj.get_final_single_path_binary_image()
 

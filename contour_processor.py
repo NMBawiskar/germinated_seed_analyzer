@@ -46,13 +46,14 @@ class ContourProcessor:
             area = cv2.contourArea(cnt)
             if w > 0.75 * self.imgW or h >0.75 * self.imgH:
                 continue
-            elif area <500:
+            # elif area <500:
+            elif area<100:
                 continue
             else:
                 # print("area",area)
                 self.shortlisted_contours.append(cnt)
 
-        print("Shortlisted contours :",len(self.shortlisted_contours))
+        # print("Shortlisted contours :",len(self.shortlisted_contours))
 
     def preprocess_thresholded_img(self):
         kernel_ =cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
@@ -69,8 +70,8 @@ class ContourProcessor:
         skImg = img_as_float(self.binaryImgShortlistedCnt)
         skeltonized = skeletonize(skImg)
         skeltonized = img_as_ubyte(skeltonized)
-        display_img('binaryImg',self.binaryImgShortlistedCnt)
-        display_img('skeleton',skeltonized)
+        # display_img('binaryImg',self.binaryImgShortlistedCnt)
+        # display_img('skeleton',skeltonized)
 
 class Seed():
     def __init__(self, xywh, imgBinarySeed, imgBinaryHeadOnly, imgColor, n_segments_each_skeleton=15,
@@ -101,7 +102,7 @@ class Seed():
 
     def show_comparison(self):
         result_img = np.hstack((self.cropped_seed_binary, self.cropped_head_binary, self.imgBinarySeedWoHead))
-        display_img("Removed Head", result_img)
+        # display_img("Removed Head", result_img)
         # cv2.waitKey(-1)
 
     def morph_head_img(self):
@@ -136,7 +137,7 @@ class Seed():
             cv2.drawContours(imgBinaryNew, [maxArcLengthCnt],-1, 255, -1)
             self.imgBinarySeedWoHead = imgBinaryNew
 
-        display_img("Final root img", self.imgBinarySeedWoHead)
+        # display_img("Final root img", self.imgBinarySeedWoHead)
         # cv2.waitKey(-1)
 
     def skeletonize_root(self):
@@ -145,7 +146,7 @@ class Seed():
         skeltonized = skeletonize(skImg)
         self.skeltonized = img_as_ubyte(skeltonized)
         skelton_result = np.hstack((self.imgBinarySeedWoHead, self.skeltonized))
-        display_img('Skeletonized root',skelton_result)
+        # display_img('Skeletonized root',skelton_result)
 
 
     def analyzeSkeleton(self):
@@ -158,7 +159,7 @@ class Seed():
         self.hyperCotyl_length_pixels = skeletonAnayzer.hyperCotyl_length_pixels
         self.radicle_length_pixels = skeletonAnayzer.radicle_length_pixels
 
-        print("-"*20)
+        # print("-"*20)
 
 
 
@@ -199,5 +200,5 @@ class Seed():
             cv2.circle(skeleton_copy, (x,y),3,255,1)
             cv2.circle(skeleton_copy, (x,y),5,255,1)
         
-        cv2.imshow("ENdpoints Intersections", skeleton_copy)
+        # cv2.imshow("ENdpoints Intersections", skeleton_copy)
         # cv2.waitKey(-1)

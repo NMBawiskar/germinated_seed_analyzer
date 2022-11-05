@@ -73,10 +73,10 @@ class BranchList(list):
 
 
 
-        print(f"Total branches = {len(self)}")
-        print("SHORT listed branches are")
-        print(len(self.shortlistedBranches))
-        print(self.shortlistedBranches)
+        # print(f"Total branches = {len(self)}")
+        # print("SHORT listed branches are")
+        # print(len(self.shortlistedBranches))
+        # print(self.shortlistedBranches)
 
 
     def get_final_single_path_binary_image(self):
@@ -101,8 +101,8 @@ class BranchList(list):
                     
             
             combined = np.hstack((self.allBranchParentImg, blnkImg))
-            cv2.imshow("ShortListed Branches",combined)
-            cv2.waitKey(-1)
+            # cv2.imshow("ShortListed Branches",combined)
+            # cv2.waitKey(-1)
 
             self.finalImgWithShortlistedBranchesOnly=  blnkImg
 
@@ -140,7 +140,7 @@ class Branch:
         
         self.singlBranchImg = np.zeros_like(self.allBranchSkeletonBinaryImg, dtype=np.uint8)
         branch = np.array(self.branchRandomPointList_yx)
-        print(branch.shape)
+        # print(branch.shape)
         for i_row, j_col in branch:            
             self.singlBranchImg[i_row,j_col] = 255
             
@@ -161,7 +161,7 @@ class Branch:
             if count_whites>count_whitesMaxFound:
                 count_whitesMaxFound = count_whites
 
-        print(f"count_white found minimum count {count_whiteMinFound} max found {count_whitesMaxFound}")
+        # print(f"count_white found minimum count {count_whiteMinFound} max found {count_whitesMaxFound}")
         
         endpoints = np.array(branchEndpoints)
 

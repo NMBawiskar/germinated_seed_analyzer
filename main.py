@@ -3,7 +3,7 @@ import os
 import numpy as np
 from contour_processor import ContourProcessor, Seed
 from utils import *
-
+import csv
 
 
 def main(img_path):
@@ -14,6 +14,8 @@ def main(img_path):
     ############### INPUT parameters for tuning ##################
     n_segments_each_skeleton = 15           # divisions to make in each length (Increase this for finer results)
     thres_avg_max_radicle_thickness = 13    # avg thickness to distinguish radicle (tune this if camera position changes)
+    dead_seed_max_length_r_h = 80
+
     ####################################################################
 
 
@@ -26,17 +28,18 @@ def main(img_path):
 
     shortListed_headsContours = contourProcessor_heads.shortlisted_contours
     list_Head_centers = list(map(get_contour_center, shortListed_headsContours))
-    print(list_Head_centers)
+    # print(list_Head_centers)
 
 
 
 
 
     ############### 1. get complete seed masks
-    hsv_values_seed = 0,127,0,255,0,172
+    # hsv_values_seed = 0,127,0,255,0,172
+    hsv_values_seed = 0,179,0,255,0,162
     hsvMask_seed = get_HSV_mask(img, hsv_values=hsv_values_seed)    
     maskConcatSeed = get_Concat_img_with_hsv_mask(img, hsvMask_seed)
-    # display_img('Result_seed', maskConcatSeed)
+    display_img('Result_seed', maskConcatSeed)
 
     contourProcessor = ContourProcessor(imgBinary=hsvMask_seed, colorImg = result)
    
@@ -70,7 +73,7 @@ def main(img_path):
 
     contourProcessor.shortlisted_contours = final_shortListedCnts    
     result_cnt_drawn =contourProcessor.display_shortlisted_contours(imgColor=img)
-    # display_img('drawnContours', result_cnt_drawn)
+    display_img('drawnContours', result_cnt_drawn)
     contourProcessor.get_skeleton_img()
 
     ################## Creating SEED object list ##################
@@ -93,28 +96,75 @@ def main(img_path):
 
     print()   
     print("#"*50)
-    print("FINAL RESULT")
-    print("HYPERCOTYL AND RADICLE LENGTHS FOR IMAGE ", imageName)
+    print("FINAL RESULT FOR IMAGE", imageName)
+    print("HYPERCOTYL AND RADICLE LENGTHS  ")
     print("RESULT",list_hypercotyl_radicle_lengths)
     print("#"*50)
     print()
 
+    display_img("Result",contourProcessor.colorImg)
     cv2.waitKey(-1)
+    return list_hypercotyl_radicle_lengths, contourProcessor.colorImg
     
+
+def getInputs():
+    cultivator_name = input("Please enter cultivator name : ")
+    batchNumber = input("Please input batch number :")
+    analysts_name = input("Please input analysts name :")
+    n_plants = input("Please input number of plants :")
+    folder_path = input("Please input folder path of images (default trial_images folder):")
+
+
+    return cultivator_name, batchNumber, analysts_name, n_plants, folder_path
+
 
 
 if __name__ == '__main__':
-    folder_path = r'trial_images'
-    images = os.listdir(folder_path)
-    for image in images:
-        img_path = os.path.join(folder_path,image)
-        print(f"Processing image {image} ............")
-        main(img_path)
-    
-        key = cv2.waitKey(-1)
-        if key == ord('q'):
-            break
 
-        print("-"*40)
-        cv2.destroyAllWindows()
+    cultivator_name, batchNumber, analysts_name, n_plants, folder_path = getInputs()
+    outputDir = "output"
+    try:
+
+        os.mkdir(outputDir)
+    except:
+        pass
+
+    if len(folder_path)>0:
+        pass
+
+    else:
+        folder_path = r'trial_images'
     
+    if os.path.exists(folder_path):
+        pass
+    else:
+        print("Please provide correct folder path.")
+        exit()
+
+
+    images = os.listdir(folder_path)
+    with open('Results.csv', 'w+',newline='') as f:
+        writer = csv.writer(f, delimiter=",")
+        header = ["cultivator_name", "batchNumber", "analysts_name", "n_plants", "imageName", "hyp", "rad"]
+        writer.writerow(header)
+        for image in images:
+            img_path = os.path.join(folder_path,image)
+            outputImgPath = os.path.join(outputDir, image)
+            print(f"Processing image {image} ............")
+            list_hypercotyl_radicle_lengths, output_resultImg = main(img_path)
+        
+            for hyp, rad in list_hypercotyl_radicle_lengths:
+                listResult = [cultivator_name, batchNumber, analysts_name, n_plants, image, hyp, rad]
+                writer.writerow(listResult)
+            
+            cv2.imwrite(outputImgPath, output_resultImg)
+
+            key = cv2.waitKey(-1)
+            if key == ord('q'):
+                break
+            
+
+            print("-"*40)
+
+        cv2.destroyAllWindows()
+    f.close()

@@ -78,8 +78,8 @@ def get_line_endpoints_intersections(skeletonized_img_np_array):
         elif count_whites>3:
             intersetion_points.append([i_row,j_col])
 
-    print(f"Total points {whitepixels.shape}")
-    print(f"Intersection_points ={len(intersetion_points)}, endpoints = {len(line_end_points)}, continuous line points = {len(continuous_line_points)}, isolated point = {len(isolated_points)}")
+    # print(f"Total points {whitepixels.shape}")
+    # print(f"Intersection_points ={len(intersetion_points)}, endpoints = {len(line_end_points)}, continuous line points = {len(continuous_line_points)}, isolated point = {len(isolated_points)}")
 
     return [intersetion_points, line_end_points]
 
