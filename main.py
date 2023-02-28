@@ -15,6 +15,11 @@ def main(img_path):
     n_segments_each_skeleton = 15           # divisions to make in each length (Increase this for finer results)
     thres_avg_max_radicle_thickness = 13    # avg thickness to distinguish radicle (tune this if camera position changes)
     dead_seed_max_length_r_h = 80
+    abnormal_seed_max_length_r_h =  130
+    normal_seed_max_length_r_h = 150
+
+    weights_factor_growth_Pc = 0.7
+    weights_factor_uniformity_Pu = 0.3
 
     ####################################################################
 
@@ -100,7 +105,9 @@ def main(img_path):
 
     batchAnalyser = BatchAnalysis(img_path=img_path, batchNumber=batchNumber, 
                         list_hypercotyl_radicle_lengths=list_hypercotyl_radicle_lengths,
-                        dead_seed_max_length_r_h=dead_seed_max_length_r_h)
+                        dead_seed_max_length_r_h=dead_seed_max_length_r_h, abnormal_seed_max_length_r_h=abnormal_seed_max_length_r_h,
+                        normal_seed_max_length_r_h=normal_seed_max_length_r_h, weights_factor_growth_Pc=weights_factor_growth_Pc, 
+                        weights_factor_uniformity_Pu=weights_factor_uniformity_Pu)
 
     batch_seed_vigor_index = batchAnalyser.seed_vigor_index
 
