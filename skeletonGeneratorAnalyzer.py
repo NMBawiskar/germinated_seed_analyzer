@@ -185,60 +185,66 @@ class SkeltonizerContour:
     def __divide_final_branch_and_analyse_lengths(self, sortedBranchPointList, singlBranchImgBinary):
         
         total_pixels_branch = len(sortedBranchPointList)
-        div_length = total_pixels_branch // self.n_breakPoints
-        # print(f"total_pixels_branch {total_pixels_branch} div_length {div_length}")
-        breakPointList = []
-
-        segmentList = []
-
-        for i in range(self.n_breakPoints):
-            breakPnt = sortedBranchPointList[i*div_length] 
-            breakPointList.append(breakPnt)
-            y,x =breakPnt
-
-            segment = sortedBranchPointList[i*div_length:i*div_length+div_length]
-            segmentList.append(segment)
-
-            cv2.circle(singlBranchImgBinary, (x,y), 3,255,1)
-            # print("breakPointList",breakPointList)
         
-        # display_img("breakPoints",singlBranchImg)
-        list_segment_avg_thickness = []
-
-        isSegmentRadicle = True
-        
-        for segment in segmentList:
-            newImg = np.zeros_like(self.skeltonized, np.uint8)
-            # newImg = cv2.drawContours(newImg, [segment], -1,255,1)
+        if total_pixels_branch > self.n_breakPoints:
             
-            segment_btm_y = segment[0][0]
-            segment_top_y = segment[-1][0]
-            partSegment = self.inputImgBinary.copy()
-            partSegment[0:segment_top_y,:] = 0
-            partSegment[segment_btm_y:,:] = 0
+            div_length = total_pixels_branch // self.n_breakPoints
+            # print(f"total_pixels_branch {total_pixels_branch} div_length {div_length}")
+            breakPointList = []
 
-            count_whites = np.sum(partSegment==255)
-            avgThickness = count_whites / len(segment)
-            list_segment_avg_thickness.append(int(avgThickness))
+            segmentList = []
 
-            for i, j in segment:
-                newImg[i,j] = 255
-                if avgThickness >self.thres_avg_max_radicle_thickness:
-                    isSegmentRadicle = False
-                    
-                if isSegmentRadicle:
-                    self.colorImg[i,j] = (255,0,0)
-                    self.radicle_length_pixels+=1
-                else:
-                    self.colorImg[i,j] = (0,255,0)
-                    self.hyperCotyl_length_pixels+=1
+            for i in range(self.n_breakPoints):
+                breakPnt = sortedBranchPointList[i*div_length] 
+                breakPointList.append(breakPnt)
+                y,x =breakPnt
+
+                segment = sortedBranchPointList[i*div_length:i*div_length+div_length]
+                segmentList.append(segment)
+
+                cv2.circle(singlBranchImgBinary, (x,y), 3,255,1)
+                # print("breakPointList",breakPointList)
             
+            # display_img("breakPoints",singlBranchImg)
+            list_segment_avg_thickness = []
 
-            # print("Average segment thickenss", list_segment_avg_thickness)
-            hconcat = np.hstack((partSegment,newImg))
-            # cv2.imshow("ResultSEED",self.colorImg)
-            # cv2.imshow("newImg",hconcat)
-            # cv2.waitKey(-1)
+            isSegmentRadicle = True
+            
+            for segment in segmentList:
+                newImg = np.zeros_like(self.skeltonized, np.uint8)
+                # newImg = cv2.drawContours(newImg, [segment], -1,255,1)
+                
+                segment_btm_y = segment[0][0]
+                segment_top_y = segment[-1][0]
+                partSegment = self.inputImgBinary.copy()
+                partSegment[0:segment_top_y,:] = 0
+                partSegment[segment_btm_y:,:] = 0
+
+                count_whites = np.sum(partSegment==255)
+                avgThickness = count_whites / len(segment)
+                list_segment_avg_thickness.append(int(avgThickness))
+
+                for i, j in segment:
+                    newImg[i,j] = 255
+                    if avgThickness >self.thres_avg_max_radicle_thickness:
+                        isSegmentRadicle = False
+                        
+                    if isSegmentRadicle:
+                        self.colorImg[i,j] = (255,0,0)
+                        self.radicle_length_pixels+=1
+                    else:
+                        self.colorImg[i,j] = (0,255,0)
+                        self.hyperCotyl_length_pixels+=1
+                
+
+                # print("Average segment thickenss", list_segment_avg_thickness)
+                hconcat = np.hstack((partSegment,newImg))
+                # cv2.imshow("ResultSEED",self.colorImg)
+                # cv2.imshow("newImg",hconcat)
+                # cv2.waitKey(-1)
+        else:
+            self.radicle_length_pixels = 0
+            self.hyperCotyl_length_pixels = total_pixels_branch
 
             
 

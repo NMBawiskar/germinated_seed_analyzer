@@ -4,7 +4,7 @@ import numpy as np
 from contour_processor import ContourProcessor, Seed
 from utils import *
 import csv
-
+from dataAnalysis import BatchAnalysis
 
 def main(img_path):
     imageName = os.path.basename(img_path)
@@ -94,6 +94,18 @@ def main(img_path):
         SeedObject.analyzeSkeleton()
         list_hypercotyl_radicle_lengths.append([SeedObject.hyperCotyl_length_pixels,SeedObject.radicle_length_pixels])
 
+
+
+    ######################### Batch analysis
+
+    batchAnalyser = BatchAnalysis(img_path=img_path, batchNumber=batchNumber, 
+                        list_hypercotyl_radicle_lengths=list_hypercotyl_radicle_lengths,
+                        dead_seed_max_length_r_h=dead_seed_max_length_r_h)
+
+    batch_seed_vigor_index = batchAnalyser.seed_vigor_index
+
+    print("batchAnalyser.seed_vigor_index", batchAnalyser.seed_vigor_index)
+
     print()   
     print("#"*50)
     print("FINAL RESULT FOR IMAGE", imageName)
@@ -104,7 +116,7 @@ def main(img_path):
 
     display_img("Result",contourProcessor.colorImg)
     cv2.waitKey(-1)
-    return list_hypercotyl_radicle_lengths, contourProcessor.colorImg
+    return list_hypercotyl_radicle_lengths, contourProcessor.colorImg, batch_seed_vigor_index
     
 
 def getInputs():
@@ -145,16 +157,16 @@ if __name__ == '__main__':
     images = os.listdir(folder_path)
     with open('Results.csv', 'w+',newline='') as f:
         writer = csv.writer(f, delimiter=",")
-        header = ["cultivator_name", "batchNumber", "analysts_name", "n_plants", "imageName", "hyp", "rad"]
+        header = ["cultivator_name", "batchNumber", "analysts_name", "n_plants", "imageName", "hyp", "rad", "seed_vigor_index"]
         writer.writerow(header)
         for image in images:
             img_path = os.path.join(folder_path,image)
             outputImgPath = os.path.join(outputDir, image)
             print(f"Processing image {image} ............")
-            list_hypercotyl_radicle_lengths, output_resultImg = main(img_path)
+            list_hypercotyl_radicle_lengths, output_resultImg, batch_seed_vigor_index = main(img_path)
         
             for hyp, rad in list_hypercotyl_radicle_lengths:
-                listResult = [cultivator_name, batchNumber, analysts_name, n_plants, image, hyp, rad]
+                listResult = [cultivator_name, batchNumber, analysts_name, n_plants, image, hyp, rad, batch_seed_vigor_index]
                 writer.writerow(listResult)
             
             cv2.imwrite(outputImgPath, output_resultImg)
