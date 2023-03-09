@@ -20,7 +20,7 @@ n(mortas) = dead seeds (seeds that didn't germinated)
 
 """
 ti = length of the analyzed seedling
-T =  medium length of the entire batch(image)
+T =  average length of the entire batch(image)
 n = plants in the batch (image)
 
 seedVigorIndex = max (0,  (1 - (summation_i_1_to_n( abs(Ti - T) / n * T) * 1000 )   -   Penalization   ))

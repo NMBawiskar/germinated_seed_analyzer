@@ -111,7 +111,6 @@ def main(img_path):
 
     batch_seed_vigor_index = batchAnalyser.seed_vigor_index
 
-    print("batchAnalyser.seed_vigor_index", batchAnalyser.seed_vigor_index)
 
     print()   
     print("#"*50)
@@ -119,6 +118,14 @@ def main(img_path):
     print("HYPERCOTYL AND RADICLE LENGTHS  ")
     print("RESULT",list_hypercotyl_radicle_lengths)
     print("#"*50)
+    print("*"*50)
+    print("Seed_vigor_index", batchAnalyser.seed_vigor_index)
+    print("Growth", batchAnalyser.growth)
+    print("Uniformity", batchAnalyser.uniformity)
+    print("Germinated_seed_count", batchAnalyser.germinated_seed_count)
+    print("Dead_seed_count", batchAnalyser.dead_seed_count)
+    print("Abnormal_seed_count", batchAnalyser.abnormal_seed_count)
+    print("*"*50)
     print()
 
     display_img("Result",contourProcessor.colorImg)
