@@ -6,6 +6,7 @@ from utils import *
 import csv
 from dataAnalysis import BatchAnalysis
 
+
 def main(img_path):
     imageName = os.path.basename(img_path)
     img = cv2.imread(img_path)
@@ -44,7 +45,7 @@ def main(img_path):
     hsv_values_seed = 0,179,0,255,0,162
     hsvMask_seed = get_HSV_mask(img, hsv_values=hsv_values_seed)    
     maskConcatSeed = get_Concat_img_with_hsv_mask(img, hsvMask_seed)
-    display_img('Result_seed', maskConcatSeed)
+    # display_img('Result_seed', maskConcatSeed)
 
     contourProcessor = ContourProcessor(imgBinary=hsvMask_seed, colorImg = result)
    
@@ -78,7 +79,7 @@ def main(img_path):
 
     contourProcessor.shortlisted_contours = final_shortListedCnts    
     result_cnt_drawn =contourProcessor.display_shortlisted_contours(imgColor=img)
-    display_img('drawnContours', result_cnt_drawn)
+    # display_img('drawnContours', result_cnt_drawn)
     contourProcessor.get_skeleton_img()
 
     ################## Creating SEED object list ##################
@@ -128,10 +129,11 @@ def main(img_path):
     print("*"*50)
     print()
 
-    display_img("Result",contourProcessor.colorImg)
-    cv2.waitKey(-1)
+    # display_img("Result",contourProcessor.colorImg)
+    # cv2.waitKey(-1)
     return list_hypercotyl_radicle_lengths, contourProcessor.colorImg, batch_seed_vigor_index
     
+
 
 def getInputs():
     cultivator_name = input("Please enter cultivator name : ")
@@ -142,6 +144,7 @@ def getInputs():
 
 
     return cultivator_name, batchNumber, analysts_name, n_plants, folder_path
+
 
 
 

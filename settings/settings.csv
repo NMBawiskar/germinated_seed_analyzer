@@ -1,0 +1,6 @@
+dead_seed_max_length,40
+abnormal_seed_max_length,130
+normal_seed_max_length,150
+no_of_segments_each_skeleton,15
+weights_factor_growth_Pc,0.3
+weights_factor_uniformity_Pu,0.7

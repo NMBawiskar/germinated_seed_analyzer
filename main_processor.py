@@ -17,8 +17,10 @@ class Main_Processor:
 
         self.weights_factor_growth_Pc = 0.7
         self.weights_factor_uniformity_Pu = 0.3
+
+        self.batchNumber = 1
             
-    def main_processor(self, img_path):
+    def process_main(self, img_path):
         imageName = os.path.basename(img_path)
         img = cv2.imread(img_path)
         result = img.copy()
@@ -48,7 +50,7 @@ class Main_Processor:
         hsv_values_seed = 0,179,0,255,0,162
         hsvMask_seed = get_HSV_mask(img, hsv_values=hsv_values_seed)    
         maskConcatSeed = get_Concat_img_with_hsv_mask(img, hsvMask_seed)
-        display_img('Result_seed', maskConcatSeed)
+        # display_img('Result_seed', maskConcatSeed)
 
         contourProcessor = ContourProcessor(imgBinary=hsvMask_seed, colorImg = result)
     
@@ -82,7 +84,7 @@ class Main_Processor:
 
         contourProcessor.shortlisted_contours = final_shortListedCnts    
         result_cnt_drawn =contourProcessor.display_shortlisted_contours(imgColor=img)
-        display_img('drawnContours', result_cnt_drawn)
+        # display_img('drawnContours', result_cnt_drawn)
         contourProcessor.get_skeleton_img()
 
         ################## Creating SEED object list ##################
@@ -107,7 +109,7 @@ class Main_Processor:
 
         ######################### Batch analysis
 
-        batchAnalyser = BatchAnalysis(img_path=img_path, batchNumber=batchNumber, 
+        batchAnalyser = BatchAnalysis(img_path=img_path, batchNumber=self.batchNumber, 
                             list_hypercotyl_radicle_lengths=list_hypercotyl_radicle_lengths,
                             dead_seed_max_length_r_h=self.dead_seed_max_length_r_h, abnormal_seed_max_length_r_h=self.abnormal_seed_max_length_r_h,
                             normal_seed_max_length_r_h=self.normal_seed_max_length_r_h, weights_factor_growth_Pc=self.weights_factor_growth_Pc, 
@@ -132,9 +134,9 @@ class Main_Processor:
         print("*"*50)
         print()
 
-        display_img("Result",contourProcessor.colorImg)
-        cv2.waitKey(-1)
-        return list_hypercotyl_radicle_lengths, contourProcessor.colorImg, batch_seed_vigor_index
+        # display_img("Result",contourProcessor.colorImg)
+        # cv2.waitKey(-1)
+        return list_hypercotyl_radicle_lengths, contourProcessor.colorImg, batchAnalyser
         
 
     def getInputs():
