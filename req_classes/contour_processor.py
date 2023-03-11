@@ -5,7 +5,7 @@ from skimage.util import img_as_float, img_as_ubyte
 from utils import *
 from shapely import ops, geometry
 import matplotlib.pyplot as plt
-from skeletonGeneratorAnalyzer import SkeltonizerContour
+from .skeletonGeneratorAnalyzer import SkeltonizerContour
 
 def plot_line(ax, ob, color):
     x, y = ob.xy

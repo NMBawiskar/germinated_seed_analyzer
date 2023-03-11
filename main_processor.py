@@ -1,10 +1,10 @@
 import cv2
 import os
 import numpy as np
-from contour_processor import ContourProcessor, Seed
+from req_classes.contour_processor import ContourProcessor, Seed
 from utils import *
 import csv
-from dataAnalysis import BatchAnalysis
+from req_classes.dataAnalysis import BatchAnalysis
 
 
 class Main_Processor:
@@ -17,7 +17,8 @@ class Main_Processor:
 
         self.weights_factor_growth_Pc = 0.7
         self.weights_factor_uniformity_Pu = 0.3
-
+        self.hsv_values_seed_heads = 0,127,0,255,0,34     
+        self.hsv_values_seed = 0,179,0,255,0,162
         self.batchNumber = 1
             
     def process_main(self, img_path):
@@ -31,8 +32,8 @@ class Main_Processor:
 
 
         ############### 1. get seed head masks
-        hsv_values_seed_heads = 0,127,0,255,0,34 
-        hsvMask_seed_heads = get_HSV_mask(img, hsv_values=hsv_values_seed_heads)    
+        
+        hsvMask_seed_heads = get_HSV_mask(img, hsv_values=self.hsv_values_seed_heads)    
         maskConcat = get_Concat_img_with_hsv_mask(img, hsvMask_seed_heads)
         # display_img('Result_heads', maskConcat)
         contourProcessor_heads = ContourProcessor(imgBinary=hsvMask_seed_heads, colorImg = result)
@@ -43,12 +44,10 @@ class Main_Processor:
 
 
 
-
-
         ############### 1. get complete seed masks
-        # hsv_values_seed = 0,127,0,255,0,172
-        hsv_values_seed = 0,179,0,255,0,162
-        hsvMask_seed = get_HSV_mask(img, hsv_values=hsv_values_seed)    
+
+        
+        hsvMask_seed = get_HSV_mask(img, hsv_values=self.hsv_values_seed)    
         maskConcatSeed = get_Concat_img_with_hsv_mask(img, hsvMask_seed)
         # display_img('Result_seed', maskConcatSeed)
 
@@ -151,52 +150,52 @@ class Main_Processor:
 
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    cultivator_name, batchNumber, analysts_name, n_plants, folder_path = getInputs()
-    outputDir = "output"
-    try:
+    # cultivator_name, batchNumber, analysts_name, n_plants, folder_path = getInputs()
+    # outputDir = "output"
+    # try:
 
-        os.mkdir(outputDir)
-    except:
-        pass
+    #     os.mkdir(outputDir)
+    # except:
+    #     pass
 
-    if len(folder_path)>0:
-        pass
+    # if len(folder_path)>0:
+    #     pass
 
-    else:
-        folder_path = r'trial_images'
+    # else:
+    #     folder_path = r'trial_images'
     
-    if os.path.exists(folder_path):
-        pass
-    else:
-        print("Please provide correct folder path.")
-        exit()
+    # if os.path.exists(folder_path):
+    #     pass
+    # else:
+    #     print("Please provide correct folder path.")
+    #     exit()
 
 
-    images = os.listdir(folder_path)
-    with open('Results.csv', 'w+',newline='') as f:
-        writer = csv.writer(f, delimiter=",")
-        header = ["cultivator_name", "batchNumber", "analysts_name", "n_plants", "imageName", "hyp", "rad", "seed_vigor_index"]
-        writer.writerow(header)
-        for image in images:
-            img_path = os.path.join(folder_path,image)
-            outputImgPath = os.path.join(outputDir, image)
-            print(f"Processing image {image} ............")
-            list_hypercotyl_radicle_lengths, output_resultImg, batch_seed_vigor_index = main(img_path)
+    # images = os.listdir(folder_path)
+    # with open('Results.csv', 'w+',newline='') as f:
+    #     writer = csv.writer(f, delimiter=",")
+    #     header = ["cultivator_name", "batchNumber", "analysts_name", "n_plants", "imageName", "hyp", "rad", "seed_vigor_index"]
+    #     writer.writerow(header)
+    #     for image in images:
+    #         img_path = os.path.join(folder_path,image)
+    #         outputImgPath = os.path.join(outputDir, image)
+    #         print(f"Processing image {image} ............")
+    #         list_hypercotyl_radicle_lengths, output_resultImg, batch_seed_vigor_index = main(img_path)
         
-            for hyp, rad in list_hypercotyl_radicle_lengths:
-                listResult = [cultivator_name, batchNumber, analysts_name, n_plants, image, hyp, rad, batch_seed_vigor_index]
-                writer.writerow(listResult)
+    #         for hyp, rad in list_hypercotyl_radicle_lengths:
+    #             listResult = [cultivator_name, batchNumber, analysts_name, n_plants, image, hyp, rad, batch_seed_vigor_index]
+    #             writer.writerow(listResult)
             
-            cv2.imwrite(outputImgPath, output_resultImg)
+    #         cv2.imwrite(outputImgPath, output_resultImg)
 
-            key = cv2.waitKey(-1)
-            if key == ord('q'):
-                break
+    #         key = cv2.waitKey(-1)
+    #         if key == ord('q'):
+    #             break
             
 
-            print("-"*40)
+    #         print("-"*40)
 
-        cv2.destroyAllWindows()
-    f.close()
+    #     cv2.destroyAllWindows()
+    # f.close()

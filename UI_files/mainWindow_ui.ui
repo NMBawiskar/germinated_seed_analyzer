@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1900</width>
+    <width>1931</width>
     <height>999</height>
    </rect>
   </property>
@@ -200,7 +200,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_editHSV">
+      <widget class="QPushButton" name="btn_get_result">
        <property name="text">
         <string>Edit HSV</string>
        </property>
@@ -292,7 +292,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1900</width>
+     <width>1931</width>
      <height>26</height>
     </rect>
    </property>

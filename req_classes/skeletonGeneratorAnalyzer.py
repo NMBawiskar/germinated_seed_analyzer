@@ -3,7 +3,7 @@ from skimage.util import img_as_float, img_as_ubyte
 from utils import display_img
 import numpy as np
 import cv2
-from branchClass import Branch, BranchList
+from .branchClass import Branch, BranchList
 
 class SkeltonizerContour:
 

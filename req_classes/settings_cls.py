@@ -15,7 +15,7 @@ class GlobalSettings(QWidget):
 
     
     def set_stored_values(self):
-        for self.mainUi
+        pass
 
     def apply_inputs(self):
 

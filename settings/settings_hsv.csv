@@ -1,0 +1,12 @@
+hmin,head,0
+hmax,head,127
+smin,head,0
+smax,head,255
+vmin,head,0
+vmax,head,34
+hmin,body,0
+hmax,body,179
+smin,body,0
+smax,body,255
+vmin,body,0
+vmax,body,162

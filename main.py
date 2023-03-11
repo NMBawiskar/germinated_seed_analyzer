@@ -4,7 +4,7 @@ import numpy as np
 from contour_processor import ContourProcessor, Seed
 from utils import *
 import csv
-from dataAnalysis import BatchAnalysis
+from req_classes.dataAnalysis import BatchAnalysis
 
 
 def main(img_path):

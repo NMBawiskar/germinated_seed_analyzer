@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import QWidget, QFileDialog
 from main_processor import Main_Processor
 import os
 import csv
-from settings_cls import GlobalSettings
-
+from req_classes.settings_cls import GlobalSettings
+from req_classes.setHSVclass import SetHSV
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QDialog.__init__(self)
@@ -52,11 +52,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.weights_factor_growth_Pc = 0.7
         self.weights_factor_uniformity_Pu = 0.3
 
+        self.hsv_values_seed_heads = [0,127,0,255,0,34]     ###### Default values do not change here
+        self.hsv_values_seed = [0,179,0,255,0,162]          ###### Default values do not change here
 
         ############ Button actions ############
         self.btnNext.clicked.connect(self.loadNextImg)
         self.btnPrev.clicked.connect(self.loadPrevImg)
-        
+        self.btn_get_result.clicked.connect(self.display_results)
 
 
         ####### Results ###############
@@ -69,9 +71,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings_dir = os.path.join(self.PROJECT_DIR, "settings")
         self.output_dir = os.path.join(self.PROJECT_DIR, 'output')
         self.settings_file_path = os.path.join(self.settings_dir, "settings.csv")
-
+        self.settings_hsv_path = os.path.join(self.settings_dir, "settings_hsv.csv")
 
         self.mainProcessor = Main_Processor()
+        self.mainProcessor.hsv_values_seed = self.hsv_values_seed
+        self.mainProcessor.hsv_values_seed_heads = self.hsv_values_seed_heads
 
         self.list_inputs = [self.dead_seed_max_length_r_h, self.abnormal_seed_max_length_r_h, 
                     self.normal_seed_max_length_r_h, self.n_segments_each_skeleton, 
@@ -80,6 +84,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     "normal_seed_max_length", "no_of_segments_each_skeleton", 
                     "weights_factor_growth_Pc", "weights_factor_uniformity_Pu"]
 
+
+        self.list_hsv_keys = ['hmin','hmax','smin','smax','vmin','vmax',]
         list_dir = [self.settings_dir, self.output_dir]
         self.create_dirs(list_dir)
         self.create_settings_if_not_present()
@@ -106,10 +112,36 @@ class MainWindow(QtWidgets.QMainWindow):
         self.weights_factor_growth_Pc = dict_values["weights_factor_growth_Pc"]
         self.weights_factor_uniformity_Pu = dict_values["weights_factor_uniformity_Pu"]
 
+        
+        with open(self.settings_hsv_path, 'r') as f:
+            lines = f.read()
+            lines = [line.replace("\n", "") for line in lines]
+            for line in lines:
+                key, head_body,value = line.split(",")
+                if head_body=='head':
+                    object_to_save = self.hsv_values_seed_heads
+                elif head_body=='body':
+                    object_to_save = self.hsv_values_seed
+                
+                index_value = self.list_hsv_keys.index(key)
+                object_to_save[index_value] = value
+        
+        self.apply_new_hsv_values()
+                       
+
+        
+
+        
+
+    def apply_new_hsv_values(self):
+        print("Applying new hsv values head :", self.hsv_values_seed_heads)
+        self.mainProcessor.hsv_values_seed = self.hsv_values_seed
+        self.mainProcessor.hsv_values_seed_heads = self.hsv_values_seed_heads
 
 
     def set_hsv_values(self):
-        pass
+        self.window = SetHSV(self)
+        self.window.show()
 
     def give_inputs(self):
         self.cultivatorName, done1 = QtWidgets.QInputDialog.getText(
@@ -128,6 +160,7 @@ class MainWindow(QtWidgets.QMainWindow):
         print("Saving in settings file...")
         try:
             os.remove(self.settings_file_path)
+    
         except Exception as e:
             print(e)
         with open(self.settings_file_path, 'a+', newline="") as f:
@@ -139,11 +172,33 @@ class MainWindow(QtWidgets.QMainWindow):
             for i in range(len(self.list_inputs)):
                 list_each = [self.list_inputs_names[i], self.list_inputs[i]]
                 csvWriter.writerow(list_each)
+    
+    def save_hsv_settings_to_file(self):
+        print("Saving HSV settings in file...")
+        try:
+            os.remove(self.settings_hsv_path)
+    
+        except Exception as e:
+            print(e)
+        with open(self.settings_hsv_path, 'a+', newline="") as f:
+            csvWriter = csv.writer(f)                    
+            for i in range(len(self.hsv_values_seed_heads)):
+                list_each = [self.list_hsv_keys[i], "head", self.hsv_values_seed_heads[i]]
+                csvWriter.writerow(list_each)
+            for i in range(len(self.hsv_values_seed)):
+                list_each = [self.list_hsv_keys[i], "body", self.hsv_values_seed[i]]
+                csvWriter.writerow(list_each)
+            
+        
+
+
 
     def create_settings_if_not_present(self):
         if not os.path.exists(self.settings_file_path):
             self.save_settings_to_file()
-
+        if not os.path.exists(self.settings_hsv_path):
+            self.save_hsv_settings_to_file()
+            
 
     def create_dirs(self, dir_list):
         for dir_path in dir_list:
@@ -160,8 +215,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.showImg()
         return self.input_folder_path
 
-    def check_if_all_valid_inputs(self):
-        
+    def check_if_all_valid_inputs(self):       
 
         validated = True
         for inputs in self.list_inputs:
@@ -174,13 +228,6 @@ class MainWindow(QtWidgets.QMainWindow):
         
     def display_results(self):
         
-        self.label_growth.setText(str(self.growth))
-        self.label_penalization.setText(str(self.penalization))
-        self.label_uniformity.setText(str(self.uniformity))
-        self.label_seedvigor.setText(str(self.seed_vigor_index))
-
-    
-
         if self.check_if_all_valid_inputs():
 
             ## Process for main
@@ -191,9 +238,17 @@ class MainWindow(QtWidgets.QMainWindow):
             self.uniformity = round(batchAnalyserObj.uniformity,2)
             self.seed_vigor_index = round(batchAnalyserObj.seed_vigor_index,2)
 
-            self.display_results()
+            # self.display_results()
 
             self.showResultImg(colorImg)
+
+        self.label_growth.setText(str(self.growth))
+        self.label_penalization.setText(str(self.penalization))
+        self.label_uniformity.setText(str(self.uniformity))
+        self.label_seedvigor.setText(str(self.seed_vigor_index))
+
+    
+
 
     def loadNextImg(self):
         if self.currentImgIndex<len(self.imagePaths)-1:
