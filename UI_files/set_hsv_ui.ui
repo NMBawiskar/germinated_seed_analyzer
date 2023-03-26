@@ -11,7 +11,10 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Set HSV</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color:rgb(244, 247, 250);</string>
   </property>
   <widget class="QLabel" name="imgLabel_hsv">
    <property name="geometry">
@@ -116,8 +119,11 @@
      <height>20</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+   </property>
    <property name="text">
-    <string>Set Values for Seed Heads</string>
+    <string>Set Values for cotyledon</string>
    </property>
   </widget>
   <widget class="QRadioButton" name="radio_hsv_seed_body">
@@ -125,12 +131,15 @@
     <rect>
      <x>70</x>
      <y>140</y>
-     <width>191</width>
+     <width>321</width>
      <height>20</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+   </property>
    <property name="text">
-    <string>Set Values for Seed Body</string>
+    <string>Set Values for hypocotyl and root</string>
    </property>
   </widget>
   <widget class="QPushButton" name="btnSave">
@@ -141,6 +150,9 @@
      <width>101</width>
      <height>31</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
    </property>
    <property name="text">
     <string>Save</string>
@@ -155,6 +167,9 @@
      <height>31</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+   </property>
    <property name="text">
     <string>Cancel</string>
    </property>
@@ -167,6 +182,9 @@
      <width>55</width>
      <height>21</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
    </property>
    <property name="text">
     <string/>
@@ -181,6 +199,9 @@
      <height>21</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+   </property>
    <property name="text">
     <string/>
    </property>
@@ -193,6 +214,9 @@
      <width>55</width>
      <height>21</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
    </property>
    <property name="text">
     <string/>
@@ -207,6 +231,9 @@
      <height>21</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+   </property>
    <property name="text">
     <string/>
    </property>
@@ -220,6 +247,9 @@
      <height>21</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+   </property>
    <property name="text">
     <string/>
    </property>
@@ -232,6 +262,9 @@
      <width>55</width>
      <height>21</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
    </property>
    <property name="text">
     <string/>

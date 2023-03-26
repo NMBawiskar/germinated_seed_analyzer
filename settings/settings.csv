@@ -1,4 +1,4 @@
-dead_seed_max_length,40
+dead_seed_max_length,70
 abnormal_seed_max_length,130
 normal_seed_max_length,150
 no_of_segments_each_skeleton,15

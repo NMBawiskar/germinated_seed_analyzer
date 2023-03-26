@@ -5,3 +5,10 @@ Old software itself.zip
 Sample images new software/
 __pycache__/
 Luiz Senko gig/
+output/
+myEnv/
+__pycache__/
+folders_to_add/
+dist/
+build/
+output/

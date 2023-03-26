@@ -3,6 +3,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PIL.ImageQt import ImageQt
 from PIL import Image
 from PyQt5.QtWidgets import QWidget, QFileDialog
+from PyQt5.QtGui import QImage, QPixmap
+
 
 def create_directory(path):
     try:
@@ -23,6 +25,11 @@ def apply_img_to_label_object(imgPath, labelObject):
     im = ImageQt(imgPil).copy()
     pixmap = QtGui.QPixmap.fromImage(im)
     labelObject.setPixmap(pixmap)
+
+def show_cv2_img_on_label_obj(uiObj, img):
+    qformat = QImage.Format_BGR888
+    img = QImage(img, img.shape[1], img.shape[0], qformat)
+    uiObj.setPixmap(QPixmap.fromImage(img))
 
 def browse_folder(self):
     qWid = QWidget()

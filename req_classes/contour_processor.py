@@ -4,7 +4,7 @@ from skimage.morphology import skeletonize
 from skimage.util import img_as_float, img_as_ubyte
 from utils import *
 from shapely import ops, geometry
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from .skeletonGeneratorAnalyzer import SkeltonizerContour
 
 def plot_line(ax, ob, color):
@@ -182,9 +182,9 @@ class Seed():
             offset_left = line.parallel_offset(1, 'left', join_style=1)
             offset_right = line.parallel_offset(1, 'right', join_style=1)
 
-            fig = plt.figure()
-            ax = fig.add_subplot(111)
-            # plot_line(ax, line, "blue")
+            # fig = plt.figure()
+            # ax = fig.add_subplot(111)
+            # # plot_line(ax, line, "blue")
             # plot_line(ax, offset_left, "green")
             # plot_line(ax, offset_right, "purple")
             # plt.show()
