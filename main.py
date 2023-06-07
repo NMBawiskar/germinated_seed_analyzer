@@ -125,6 +125,7 @@ class MainWindow(QtWidgets.QMainWindow):
         list_dir = [self.settings_dir, self.output_dir]
         self.create_dirs(list_dir)
         self.create_settings_if_not_present()
+        
         imgLogo = cv2.imread('resources/ProSeedling_logo_cropped.png')
         ut.apply_img_to_label_object('resources/ProSeedling_logo_cropped_transparent.png', self.label_logo)
 
