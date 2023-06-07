@@ -341,9 +341,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.model = TableModel(self.data_each_seed)
             self.model.columns=['Seedling', 'Hypocotyl', 'Root', 'Total', 'Hypocotyl/root ratio']
             self.tableView_res.setModel(self.model)
-            
-
-                
+               
 
 
     def process_img_and_display_results(self):
@@ -493,6 +491,6 @@ if __name__ == '__main__':
     w = MainWindow()
     w.show()
     w.setWindowTitle("ProSeedling Software")
-    w.setWindowIcon(QtGui.QIcon(r'ProSeedling logo PNG (1).png'))
+    w.setWindowIcon(QtGui.QIcon(r'resources/ProSeedling_logo_cropped.png'))
     sys.exit(app.exec())
     
