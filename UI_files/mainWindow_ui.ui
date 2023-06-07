@@ -23,7 +23,7 @@
    <string>Germination Vigor Analyser</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color:rgb(244, 247, 250);</string>
+   <string notr="true">background-color:rgb(113, 113, 118);</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QWidget" name="horizontalLayoutWidget">
