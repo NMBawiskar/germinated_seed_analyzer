@@ -12,10 +12,17 @@ class GlobalSettings(QWidget):
         self.btn_cancel.clicked.connect(self.close_window)
 
         self.mainUi.read_settings()
-
+        self.set_stored_values()
     
     def set_stored_values(self):
-        pass
+        self.lineEdit_deadSeedL.setText(str(int(self.mainUi.dead_seed_max_length_r_h)))
+        self.lineEdit_abnormal_seedL.setText(str(self.mainUi.abnormal_seed_max_length_r_h))
+        self.lineEdit_normal_seedL.setText(str(self.mainUi.normal_seed_max_length_r_h))
+        self.lineEdit_avg_rad_length.setText(str(self.mainUi.thres_avg_max_radicle_thickness))
+        
+        self.spinBox_n_seg.setValue(self.mainUi.n_segments_each_skeleton)
+        self.doubleSpinBox_pc.setValue(self.mainUi.weights_factor_growth_Pc)
+        self.doubleSpinBox_pu.setValue(self.mainUi.weights_factor_uniformity_Pu)
 
     def apply_inputs(self):
 
