@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 from class_photo_viewer import PhotoViewer
 import cv2
+import json
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QDialog.__init__(self)
@@ -48,9 +49,16 @@ class MainWindow(QtWidgets.QMainWindow):
         filemenu = self.menubar.addMenu('File')
         
         filemenu.addAction('Open Folder', self.browse_input_folder)
-        filemenu.addAction('Change settings', self.change_settings)
         filemenu.addAction('Inputs', self.give_inputs)
-        filemenu.addAction("Set HSV values",self.set_hsv_values)
+      
+
+        menuConfig = self.menubar.addMenu('Configuration')
+        menuConfig.addAction("Import Configurations", self.import_settings)
+        menuConfig.addAction("Export Settings", self.export_settings)
+        menuConfig.addAction('Change settings', self.change_settings)
+        menuConfig.addAction("Set HSV values",self.set_hsv_values)
+
+
 
         filemenu.setStyleSheet("""background-color: None;
                             font: 63 10pt "Segoe UI";
@@ -107,6 +115,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings_dir = os.path.join(self.PROJECT_DIR, "settings")
         self.output_dir = os.path.join(self.PROJECT_DIR, 'output')
         self.settings_file_path = os.path.join(self.settings_dir, "settings.csv")
+        self.settings_json_file_path =  os.path.join(self.settings_dir, "settings.json")
         self.settings_hsv_path = os.path.join(self.settings_dir, "settings_hsv.csv")
 
         self.mainProcessor = Main_Processor()
@@ -116,6 +125,33 @@ class MainWindow(QtWidgets.QMainWindow):
         self.list_inputs = [self.dead_seed_max_length_r_h, self.abnormal_seed_max_length_r_h, 
                     self.normal_seed_max_length_r_h, self.n_segments_each_skeleton, 
                     self.weights_factor_growth_Pc, self.weights_factor_uniformity_Pu]
+        
+
+        self.dict_settings = {
+                            
+                            "dead_seed_max_length": self.dead_seed_max_length_r_h, 
+                            "abnormal_seed_max_length":self.abnormal_seed_max_length_r_h, 
+                            "normal_seed_max_length":self.normal_seed_max_length_r_h, 
+                            "no_of_segments_each_skeleton":self.n_segments_each_skeleton,
+                            "weights_factor_growth_Pc":self.weights_factor_growth_Pc, 
+                            "weights_factor_uniformity_Pu":self.weights_factor_uniformity_Pu,
+                            "thresh_avg_max_radicle_thickness":self.thres_avg_max_radicle_thickness,
+                            'hmin_head':self.hsv_values_seed_heads[0],
+                            'hmax_head':self.hsv_values_seed_heads[1],
+                            'smin_head':self.hsv_values_seed_heads[2],
+                            'smax_head':self.hsv_values_seed_heads[3],
+                            'vmin_head':self.hsv_values_seed_heads[4],
+                            'vmax_head':self.hsv_values_seed_heads[5],
+                            'hmin_body':self.hsv_values_seed[0],
+                            'hmax_body':self.hsv_values_seed[1],
+                            'smin_body':self.hsv_values_seed[2],
+                            'smax_body':self.hsv_values_seed[3],
+                            'vmin_body':self.hsv_values_seed[4],
+                            'vmax_body':self.hsv_values_seed[5],
+                            'factor_pixel_to_cm':0.4
+                            
+                            }
+
         self.list_inputs_names = ["dead_seed_max_length", "abnormal_seed_max_length", 
                     "normal_seed_max_length", "no_of_segments_each_skeleton", 
                     "weights_factor_growth_Pc", "weights_factor_uniformity_Pu"]
@@ -131,7 +167,31 @@ class MainWindow(QtWidgets.QMainWindow):
         ut.apply_img_to_label_object('resources/ProSeedling_logo_cropped_transparent.png', self.label_logo)
 
 
+    def import_settings(self):
+        pass
+    def export_settings(self):
+        self.saveFileDialog()
 
+    def set_configuration(self):
+        pass
+
+    def saveFileDialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        filePath, _ = QFileDialog.getSaveFileName(self,"Save Settings file","","Json File (*.json)", options=options)
+        if filePath:
+            print(filePath)
+            if filePath[-5:] != ".json":
+                filePath+=".json"
+
+            with open(filePath, 'w+') as f:
+                json.dump(self.dict_settings, f)
+        
+            ut.showdialog("Settings file exported successfully!!")
+        else:
+            ut.showdialog("Please select file to export settings.")
+
+    
     def get_selected_row(self):
         # index = self.tableView_res.selectedIndexes()[0]
         # id_us = int(self.tableView_res.model().data(index).toString())
@@ -238,6 +298,10 @@ class MainWindow(QtWidgets.QMainWindow):
             for i in range(len(self.list_inputs)):
                 list_each = [self.list_inputs_names[i], self.list_inputs[i]]
                 csvWriter.writerow(list_each)
+
+        with open(self.settings_json_file_path,'w+') as f:
+            json.dump(self.dict_settings, f)
+
     
     def save_hsv_settings_to_file(self):
         print("Saving HSV settings in file...")

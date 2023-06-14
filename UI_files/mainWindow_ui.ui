@@ -375,7 +375,7 @@ color: rgb(32, 24, 255);
 border-radius:4;</string>
        </property>
        <property name="text">
-        <string>No. of plants</string>
+        <string>No. of Seedlings</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>

@@ -28,24 +28,29 @@ class GlobalSettings(QWidget):
 
         if len(self.lineEdit_deadSeedL.text())>0 and self.lineEdit_deadSeedL.text().isnumeric():
             self.mainUi.dead_seed_max_length_r_h = int(self.lineEdit_deadSeedL.text())
+            self.mainUi.dict_settings['dead_seed_max_length'] = int(self.lineEdit_deadSeedL.text())
             
         if len(self.lineEdit_abnormal_seedL.text())>0 and self.lineEdit_abnormal_seedL.text().isnumeric():
             self.mainUi.abnormal_seed_max_length_r_h =  int(self.lineEdit_abnormal_seedL.text())
-            
+            self.mainUi.dict_settings['abnormal_seed_max_length'] = int(self.lineEdit_abnormal_seedL.text())
             
         if len(self.lineEdit_normal_seedL.text())>0 and self.lineEdit_normal_seedL.text().isnumeric():
             self.mainUi.normal_seed_max_length_r_h =  int(self.lineEdit_normal_seedL.text())
-            
+            self.mainUi.dict_settings['normal_seed_max_length'] =  int(self.lineEdit_normal_seedL.text())
+
         if len(self.lineEdit_avg_rad_length.text())>0 and self.lineEdit_avg_rad_length.text().isnumeric():
             self.mainUi.thres_avg_max_radicle_thickness =  int(self.lineEdit_avg_rad_length.text())
+            self.mainUi.dict_settings['thresh_avg_max_radicle_thickness'] =  int(self.lineEdit_avg_rad_length.text())
             
         self.mainUi.n_segments_each_skeleton = self.spinBox_n_seg.value()           # divisions to make in each length (Increase this for finer results)
-                                                                      # avg thickness to distinguish radicle (tune this if camera position changes)
+        self.mainUi.dict_settings['no_of_segments_each_skeleton'] =  self.spinBox_n_seg.value()                                                                   # avg thickness to distinguish radicle (tune this if camera position changes)
         self.mainUi.weights_factor_growth_Pc =self.doubleSpinBox_pc.value()
+        self.mainUi.dict_settings['weights_factor_growth_Pc'] =self.doubleSpinBox_pc.value()    
         self.mainUi.weights_factor_uniformity_Pu = self.doubleSpinBox_pu.value()
+        self.mainUi.dict_settings['weights_factor_uniformity_Pu'] = self.doubleSpinBox_pu.value()
         
         ### Call method to save values
-        print("self.mainUi.dead_seed_max_length_r_h",self.mainUi.dead_seed_max_length_r_h)
+        # print("self.mainUi.dead_seed_max_length_r_h",self.mainUi.dead_seed_max_length_r_h)
         self.mainUi.save_settings_to_file()
         showdialog("Settings saved successfully!!!")
         self.close_window()
