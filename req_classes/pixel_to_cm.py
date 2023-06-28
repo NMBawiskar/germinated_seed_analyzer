@@ -35,7 +35,7 @@ def get_pixel_to_cm(img):
     print("PIXEL_per_CM = ", pixel_per_cm)
     return pixel_per_cm
 
-imgPath = r"requirements_v2\WIN_20230420_10_24_19_Pro.jpg"
+# imgPath = r"requirements_v2\WIN_20230420_10_24_19_Pro.jpg"
 
-img = cv2.imread(imgPath)
-pixel_per_cm = get_pixel_to_cm(img)
+# img = cv2.imread(imgPath)
+# pixel_per_cm = get_pixel_to_cm(img)

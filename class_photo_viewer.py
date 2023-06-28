@@ -1,4 +1,18 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+class mouseMove(QtWidgets.QGraphicsSceneEvent):
+    def __init_subclass__(cls) -> None:
+        return super().__init_subclass__()
+
+class CustomGraphicScene(QtWidgets.QGraphicsScene):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+    
+    # def hoverMoveEvent(self, event):
+    #     print("Hover event", event.scenePos().x(), event.scenePos().y())
+    def mouseMoveEvent(self, event) -> None:
+        print("Hover event", event.localPos().x(), event.localPos().y())
+
+
 
 class PhotoViewer(QtWidgets.QGraphicsView):
     photoClicked = QtCore.pyqtSignal(QtCore.QPoint)
@@ -7,7 +21,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         super(PhotoViewer, self).__init__(parent)
         self._zoom = 0
         self._empty = True
-        self._scene = QtWidgets.QGraphicsScene(self)
+        self._scene = CustomGraphicScene(self)
         self._photo = QtWidgets.QGraphicsPixmapItem()
         self._scene.addItem(self._photo)
         self.setScene(self._scene)
@@ -17,6 +31,9 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(30, 30, 30)))
         self.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.setMouseTracking(True)
+        
+        # self._scene.mouseMoveEvent()
 
     def hasPhoto(self):
         return not self._empty
@@ -72,3 +89,6 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         if self._photo.isUnderMouse():
             self.photoClicked.emit(self.mapToScene(event.pos()).toPoint())
         super(PhotoViewer, self).mousePressEvent(event)
+
+    # def mouseMoveEvent(self, event) -> None:
+    #     print("Hover event", event.localPos().x(), event.localPos().y())

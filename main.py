@@ -14,6 +14,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 from class_photo_viewer import PhotoViewer
+from req_classes.pixel_to_cm import get_pixel_to_cm
 import cv2
 import json
 class MainWindow(QtWidgets.QMainWindow):
@@ -57,6 +58,7 @@ class MainWindow(QtWidgets.QMainWindow):
         menuConfig.addAction("Export Settings", self.export_settings)
         menuConfig.addAction('Change settings', self.change_settings)
         menuConfig.addAction("Set HSV values",self.set_hsv_values)
+        menuConfig.addAction("Set caliberation",self.set_pixel_cm_values)
 
 
 
@@ -82,6 +84,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.weights_factor_growth_Pc = 0.7
         self.weights_factor_uniformity_Pu = 0.3
+
+        self.pixel_per_cm = 0.4
 
         self.hsv_values_seed_heads = [0,127,0,255,0,34]     ###### Default values do not change here
         self.hsv_values_seed = [0,179,0,255,0,162]          ###### Default values do not change here
@@ -148,7 +152,7 @@ class MainWindow(QtWidgets.QMainWindow):
                             'smax_body':self.hsv_values_seed[3],
                             'vmin_body':self.hsv_values_seed[4],
                             'vmax_body':self.hsv_values_seed[5],
-                            'factor_pixel_to_cm':0.4
+                            'factor_pixel_to_cm':self.pixel_per_cm
                             
                             }
 
@@ -166,9 +170,46 @@ class MainWindow(QtWidgets.QMainWindow):
         imgLogo = cv2.imread('resources/ProSeedling_logo_cropped.png')
         ut.apply_img_to_label_object('resources/ProSeedling_logo_cropped_transparent.png', self.label_logo)
 
+    def set_pixel_cm_values(self):
+        """Function to upload caliberation image"""
+
+        # 1. upload image with square box printed over it
+        # 2. extract square and 
+        qWid = QWidget()
+        print("Select measurements caliberation image")
+        filepath, _ = QFileDialog.getOpenFileName(qWid, 'Select measurements caliberation image','',"Image files (*.jpg)")
+        if not os.path.exists(filepath):
+            ut.showdialog("Please select a file")
+        else:
+            img = cv2.imread(filepath)
+            
+            self.pixel_per_cm = get_pixel_to_cm(img)
+
+            print("Pixels per centimeter is :", self.pixel_per_cm)
+            cv2.imshow('img', img)
+            self.dict_settings['factor_pixel_to_cm'] = self.pixel_per_cm
+            # cv2.waitKey(-1)
+            print("self.dict_settings['factor_pixel_to_cm']", self.dict_settings['factor_pixel_to_cm'])
+            self.save_settings_to_file()
+
+
 
     def import_settings(self):
-        pass
+            
+
+        qWid = QWidget()
+        print("file browse")
+        filepath,_ = QFileDialog.getOpenFileName(qWid, 'Select File', "","Json File (*.json)")        
+        print(filepath)
+        if not os.path.exists(filepath):
+            ut.showdialog("Please select a file")
+        else:
+            with open(filepath, 'r') as f:
+                data = f.read()
+                self.dict_settings = json.loads(data)
+
+
+
     def export_settings(self):
         self.saveFileDialog()
 
@@ -276,11 +317,17 @@ class MainWindow(QtWidgets.QMainWindow):
            self, 'Inputs', 'Enter Lot no:') 
         self.n_seeds, done4 = inputDialog.getInt(
            self, 'Inputs', 'Enter no of seeds :')
+        
+        if self.n_seeds < 1:
+            ut.showdialog("No of seeds cannot be less than 1. Please select proper value.")
+            self.n_seeds, done4 = inputDialog.getInt(
+                    self, 'Inputs', 'Enter no of seeds :')
         if done1 and done2 and done3:
             self.label_cult_name.setText(str(self.cultivatorName))
             self.label_analys_name.setText(str(self.analystsName))
             self.label_batchNo.setText(str(self.batchNo))
-            self.label_n_plants.setText(str(self.n_seeds))  
+            self.label_n_plants.setText(str(self.n_seeds))
+
             
     def save_settings_to_file(self):
         print("Saving in settings file...")
@@ -442,7 +489,8 @@ class MainWindow(QtWidgets.QMainWindow):
             # writer.writerow(line)
             total_lengths+= seed_length
             list_total_lengths.append(seed_length)
-
+        
+        
         self.avg_length = total_lengths / self.n_seeds
         total_length_array = np.array(list_total_lengths)
         self.std_deviation = round(np.std(total_length_array),2)
