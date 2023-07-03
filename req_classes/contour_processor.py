@@ -6,6 +6,9 @@ from utils import *
 from shapely import ops, geometry
 # import matplotlib.pyplot as plt
 from .skeletonGeneratorAnalyzer import SkeltonizerContour
+from proj_settings import MainSettings, SeedHealth
+import json
+
 
 def plot_line(ax, ob, color):
     x, y = ob.xy
@@ -73,9 +76,13 @@ class ContourProcessor:
         # display_img('binaryImg',self.binaryImgShortlistedCnt)
         # display_img('skeleton',skeltonized)
 
+
+
+
 class Seed():
+    
     def __init__(self, xywh, imgBinarySeed, imgBinaryHeadOnly, imgColor, n_segments_each_skeleton=15,
-                        thres_avg_max_radicle_thickness=12):
+                        thres_avg_max_radicle_thickness=12, mainUI=None):
         self.imgBinarySeed = imgBinarySeed
         self.imgBinaryHead = imgBinaryHeadOnly
         self.colorImg = imgColor
@@ -91,7 +98,12 @@ class Seed():
 
         self.hyperCotyl_length_pixels = 0
         self.radicle_length_pixels = 0
+        self.total_length_pixels = 0
 
+        self.seed_health = SeedHealth.NORMAL_SEED
+        self.settings_file_path = MainSettings.settings_json_file_path
+        self.dict_settings = {}
+        self.load_settings()
         self.remove_head()
 
     def remove_head(self):
@@ -99,6 +111,17 @@ class Seed():
         self.cropped_seed_binary = cropImg(self.imgBinarySeed, self.xywh)
         self.cropped_seed_color = cropImg(self.colorImg, self.xywh)
         self.imgBinarySeedWoHead = cv2.subtract(self.cropped_seed_binary, self.cropped_head_binary)
+
+        # display_img('cropped_seed_color',self.cropped_seed_color)
+        # display_img('cropped_seed_binary',self.cropped_seed_binary)
+        # display_img('cropped_head_binary',self.cropped_head_binary)
+        # cv2.waitKey(-1)
+    
+    def load_settings(self):
+        with open(self.settings_file_path, 'r') as f:
+            data = f.read()
+            self.dict_settings = json.loads(data)
+
 
     def show_comparison(self):
         result_img = np.hstack((self.cropped_seed_binary, self.cropped_head_binary, self.imgBinarySeedWoHead))
@@ -158,8 +181,15 @@ class Seed():
         
         self.hyperCotyl_length_pixels = skeletonAnayzer.hyperCotyl_length_pixels
         self.radicle_length_pixels = skeletonAnayzer.radicle_length_pixels
+        self.total_length_pixels = self.hyperCotyl_length_pixels + self.radicle_length_pixels
 
-        # print("-"*20)
+        if 'dead_seed_max_length' in self.dict_settings.keys():
+            if self.total_length_pixels <= self.dict_settings['dead_seed_max_length']:
+                self.seed_health = SeedHealth.DEAD_SEED
+            elif self.total_length_pixels <= self.dict_settings['abnormal_seed_max_length']:
+                self.seed_health = SeedHealth.ABNORMAL_SEED
+            else:
+                self.seed_health = SeedHealth.NORMAL_SEED
 
 
 

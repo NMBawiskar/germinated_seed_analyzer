@@ -3,14 +3,14 @@ class mouseMove(QtWidgets.QGraphicsSceneEvent):
     def __init_subclass__(cls) -> None:
         return super().__init_subclass__()
 
-class CustomGraphicScene(QtWidgets.QGraphicsScene):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+# class CustomGraphicScene(QtWidgets.QGraphicsScene):
+#     def __init__(self, parent=None):
+#         super().__init__(parent)
     
-    # def hoverMoveEvent(self, event):
-    #     print("Hover event", event.scenePos().x(), event.scenePos().y())
-    def mouseMoveEvent(self, event) -> None:
-        print("Hover event", event.localPos().x(), event.localPos().y())
+#     # def hoverMoveEvent(self, event):
+#     #     print("Hover event", event.scenePos().x(), event.scenePos().y())
+#     def mouseMoveEvent(self, event) -> None:
+#         print("Hover event", event.localPos().x(), event.localPos().y())
 
 
 
@@ -21,7 +21,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         super(PhotoViewer, self).__init__(parent)
         self._zoom = 0
         self._empty = True
-        self._scene = CustomGraphicScene(self)
+        self._scene = QtWidgets.QGraphicsScene(self)
         self._photo = QtWidgets.QGraphicsPixmapItem()
         self._scene.addItem(self._photo)
         self.setScene(self._scene)

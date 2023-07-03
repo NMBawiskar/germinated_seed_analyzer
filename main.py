@@ -15,8 +15,10 @@ import numpy as np
 import pandas as pd
 from class_photo_viewer import PhotoViewer
 from req_classes.pixel_to_cm import get_pixel_to_cm
+from req_classes.seedEditor import SeedEditor
 import cv2
 import json
+
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QDialog.__init__(self)
@@ -118,6 +120,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.PROJECT_DIR = os.path.abspath(os.path.dirname(__file__))
         self.settings_dir = os.path.join(self.PROJECT_DIR, "settings")
         self.output_dir = os.path.join(self.PROJECT_DIR, 'output')
+        self.output_results_dir = os.path.join(self.output_dir, 'results')
+        self.output_images_dir = os.path.join(self.output_dir, 'processed_images')
+        # self.output_batch_dir = os.path.join(self.output_dir, self.batchNo)
         self.settings_file_path = os.path.join(self.settings_dir, "settings.csv")
         self.settings_json_file_path =  os.path.join(self.settings_dir, "settings.json")
         self.settings_hsv_path = os.path.join(self.settings_dir, "settings_hsv.csv")
@@ -167,8 +172,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.create_settings_if_not_present()
         self.read_settings()
         
+
         imgLogo = cv2.imread('resources/ProSeedling_logo_cropped.png')
         ut.apply_img_to_label_object('resources/ProSeedling_logo_cropped_transparent.png', self.label_logo)
+        
+        self.seedEditorObj = SeedEditor(self)
+
 
     def set_pixel_cm_values(self):
         """Function to upload caliberation image"""
@@ -192,8 +201,6 @@ class MainWindow(QtWidgets.QMainWindow):
             print("self.dict_settings['factor_pixel_to_cm']", self.dict_settings['factor_pixel_to_cm'])
             self.save_settings_to_file()
 
-
-
     def import_settings(self):
             
 
@@ -207,8 +214,6 @@ class MainWindow(QtWidgets.QMainWindow):
             with open(filepath, 'r') as f:
                 data = f.read()
                 self.dict_settings = json.loads(data)
-
-
 
     def export_settings(self):
         self.saveFileDialog()
@@ -231,16 +236,32 @@ class MainWindow(QtWidgets.QMainWindow):
             ut.showdialog("Settings file exported successfully!!")
         else:
             ut.showdialog("Please select file to export settings.")
-
     
     def get_selected_row(self):
-        # index = self.tableView_res.selectedIndexes()[0]
+        index = self.tableView_res.selectedIndexes()[0]
         # id_us = int(self.tableView_res.model().data(index).toString())
         # print ("index : " + str(id_us)) 
-        # # print('selected_index', index)
-        indexes = self.tableView_res.selectionModel().selectedRows()
-        for index in sorted(indexes):
-            print('Row %d is selected' % index.row())
+        print('selected_index',index.row())
+        # seedEditorObj = SeedEditor(self)
+        
+        seedObjSelected = self.mainProcessor.SeedObjList[index.row()]
+        self.seedEditorObj.setSeedObj(seedObjSelected)
+        seedIndex=index.row()
+        self.seedEditorObj.setSeedIndex(seedIndex)
+        
+        ut.show_cv2_img_on_label_obj(uiObj= self.seedEditorObj.label_img_seed ,img = seedObjSelected.cropped_seed_color)
+        self.seedEditorObj.update_values()
+        
+        self.window = self.seedEditorObj
+        self.window.show()
+        
+        
+
+        # cv2.imshow(f"Seed {index.row()}",self.mainProcessor.SeedObjList[index.row()].cropped_seed_color)
+        # cv2.waitKey(-1)
+        # indexes = self.tableView_res.selectionModel().selectedRows()
+        # for index in sorted(indexes):
+        #     print('Row %d is selected' % index.row())
 
     def set_file_name(self):
             
@@ -291,7 +312,6 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.apply_new_hsv_values()
                        
-
     def apply_new_hsv_values(self):
         print("Applying new hsv values head :", self.hsv_values_seed_heads)
         self.mainProcessor.hsv_values_seed = self.hsv_values_seed
@@ -303,7 +323,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.window.show()
         else:
             ut.showdialog("Please select a image folder before.. and then you can change HSV values")
-            
 
     def give_inputs(self):
         # QtWidgets.QInputDialog.setStyleSheet()
@@ -316,7 +335,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.batchNo, done3 = inputDialog.getInt(
            self, 'Inputs', 'Enter Lot no:') 
         self.n_seeds, done4 = inputDialog.getInt(
-           self, 'Inputs', 'Enter no of seeds :')
+           self, 'Inputs',  'Enter no of seeds :', value=1, min=1)
         
         if self.n_seeds < 1:
             ut.showdialog("No of seeds cannot be less than 1. Please select proper value.")
@@ -327,7 +346,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.label_analys_name.setText(str(self.analystsName))
             self.label_batchNo.setText(str(self.batchNo))
             self.label_n_plants.setText(str(self.n_seeds))
-
             
     def save_settings_to_file(self):
         print("Saving in settings file...")
@@ -348,7 +366,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         with open(self.settings_json_file_path,'w+') as f:
             json.dump(self.dict_settings, f)
-
     
     def save_hsv_settings_to_file(self):
         print("Saving HSV settings in file...")
@@ -365,14 +382,12 @@ class MainWindow(QtWidgets.QMainWindow):
             for i in range(len(self.hsv_values_seed)):
                 list_each = [self.list_hsv_keys[i], "body", self.hsv_values_seed[i]]
                 csvWriter.writerow(list_each)
-            
       
     def create_settings_if_not_present(self):
         if not os.path.exists(self.settings_file_path):
             self.save_settings_to_file()
         if not os.path.exists(self.settings_hsv_path):
             self.save_hsv_settings_to_file()
-            
 
     def create_dirs(self, dir_list):
         for dir_path in dir_list:
@@ -387,13 +402,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.input_folder_path = QFileDialog.getExistingDirectory(qWid, 'Select folder', '')
         self.load_images()
         if len(self.imagePaths)>0:
+            ## NOTE: uncomment this 
+            # self.give_inputs()
 
-            self.give_inputs()
+            self.output_dir = os.path.join(self.input_folder_path, str(self.batchNo))
+            self.output_results_dir = os.path.join(self.output_dir, 'results')
+            self.output_images_dir = os.path.join(self.output_dir, 'processed_images')
+
+            os.makedirs(self.output_dir, exist_ok=True)
+            os.makedirs(self.output_results_dir, exist_ok=True)
+            os.makedirs(self.output_images_dir, exist_ok=True)
+
 
             self.process_img_and_display_results()
             self.showImg()
-            self.output_dir = self.input_folder_path
-            self.process_img_and_display_results()
+            # self.output_dir = self.input_folder_path
+            # self.process_img_and_display_results()
         else:
             ut.showdialog("This folder does not contain any image file. Please choose another one..")
 
@@ -417,7 +441,7 @@ class MainWindow(QtWidgets.QMainWindow):
         fileNameWoExt = current_file_name[:-1 * ext_len]
 
         outCsvFileName = fileNameWoExt + ".csv"
-        output_result_csv_path = os.path.join(self.output_dir, outCsvFileName)
+        output_result_csv_path = os.path.join(self.output_results_dir, outCsvFileName)
         datetime_now = datetime.today()
         date = datetime_now.date
         date_str = datetime_now.strftime("%d-%m-%y")
@@ -454,9 +478,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.model = TableModel(self.data_each_seed)
             self.model.columns=['Seedling', 'Hypocotyl', 'Root', 'Total', 'Hypocotyl/root ratio']
             self.tableView_res.setModel(self.model)
-               
-
-
+              
     def process_img_and_display_results(self):
         
         if self.check_if_all_valid_inputs():
@@ -473,12 +495,20 @@ class MainWindow(QtWidgets.QMainWindow):
             self.count_dead_seeds = batchAnalyserObj.dead_seed_count
             self.count_germinated_seeds = batchAnalyserObj.germinated_seed_count
             
-        
+            ## save output image
+            try:
+                os.makedirs(self.output_images_dir, exist_ok=True)
+            except Exception as e:
+                pass
+            output_img_path = os.path.join(self.output_images_dir, os.path.basename(self.imagePaths[self.currentImgIndex]))
+            cv2.imwrite(output_img_path, colorImg)
+
             self.showResultImg(colorImg)
             
         total_lengths = 0
         list_total_lengths = []
         self.data_each_seed = []
+
         for i in range(len(self.list_hypercotyl_radicle_lengths)):
             hyp, rad = self.list_hypercotyl_radicle_lengths[i]
             seed_length = hyp + rad
@@ -507,7 +537,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
         self.save_results_to_csv()
-    
 
     def loadNextImg(self):
         if self.currentImgIndex<len(self.imagePaths)-1:
@@ -547,6 +576,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.pixmap = QtGui.QPixmap.fromImage(qImg)
         # self.imgLabel.setPixmap(self.pixmap)
         self.viewer.setPhoto(self.pixmap)
+
+        
     
     def resize_and_relocate(self, obj):
         old_x = obj.x()

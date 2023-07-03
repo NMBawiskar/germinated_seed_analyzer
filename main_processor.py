@@ -20,6 +20,7 @@ class Main_Processor:
         self.hsv_values_seed_heads = 0,127,0,255,0,34     
         self.hsv_values_seed = 0,179,0,255,0,162
         self.batchNumber = 1
+        self.SeedObjList = []
             
     def process_main(self, img_path):
         imageName = os.path.basename(img_path)
@@ -87,7 +88,7 @@ class Main_Processor:
         contourProcessor.get_skeleton_img()
 
         ################## Creating SEED object list ##################
-        SeedObjList = []
+        self.SeedObjList = []
         list_hypercotyl_radicle_lengths = []
         for i in range(len(xywh_list_final)):
             SeedObject = Seed(xywh=xywh_list_final[i], imgBinarySeed=hsvMask_seed, 
@@ -97,7 +98,7 @@ class Main_Processor:
                 thres_avg_max_radicle_thickness = self.thres_avg_max_radicle_thickness
                 )
 
-            SeedObjList.append(SeedObject)
+            self.SeedObjList.append(SeedObject)
             SeedObject.morph_head_img()
             SeedObject.skeletonize_root()
             # SeedObject.make_offset()
