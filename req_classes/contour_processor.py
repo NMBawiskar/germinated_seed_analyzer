@@ -19,14 +19,10 @@ class ContourProcessor:
     def __init__(self, imgBinary, colorImg):
         self.binaryImgRaw = imgBinary
         self.colorImg = colorImg
-        
-
         ############
         self.shortlisted_contours = []
         ############
-
         self.binaryImgShortlistedCnt =None
-
         self.__get_img_prop()
         self.preprocess_thresholded_img()
         self.__findContours()
@@ -40,7 +36,6 @@ class ContourProcessor:
         for cnt in self.shortlisted_contours:
             cv2.drawContours(self.binaryImgShortlistedCnt, [cnt], -1, 255, -1)
         
-
     def __findContours(self):
         contours, heirarchy = cv2.findContours(self.binaryImgRaw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         contoursSorted = sorted(contours, key=cv2.contourArea)
@@ -100,6 +95,16 @@ class Seed():
         self.radicle_length_pixels = 0
         self.total_length_pixels = 0
 
+        self.factor_pixel_to_cm = 0
+        self.hyperCotyl_length_cm = 0
+        self.radicle_length_cm = 0
+        self.total_length_cm = 0
+        self.ratio_h_root = 0
+        
+        self.sorted_point_list = []
+        self.list_points_hypercotyl = [] ## [y,x] format
+        self.list_points_root = []
+
         self.seed_health = SeedHealth.NORMAL_SEED
         self.settings_file_path = MainSettings.settings_json_file_path
         self.dict_settings = {}
@@ -121,7 +126,7 @@ class Seed():
         with open(self.settings_file_path, 'r') as f:
             data = f.read()
             self.dict_settings = json.loads(data)
-
+            self.factor_pixel_to_cm = self.dict_settings['factor_pixel_to_cm']
 
     def show_comparison(self):
         result_img = np.hstack((self.cropped_seed_binary, self.cropped_head_binary, self.imgBinarySeedWoHead))
@@ -171,6 +176,12 @@ class Seed():
         skelton_result = np.hstack((self.imgBinarySeedWoHead, self.skeltonized))
         # display_img('Skeletonized root',skelton_result)
 
+    def calculate_values_in_cm(self):
+        print("self.factor_pixel_to_cm", self.factor_pixel_to_cm)
+        self.total_length_cm = round(self.total_length_pixels / self.factor_pixel_to_cm, 2)
+        self.hyperCotyl_length_cm = round(self.hyperCotyl_length_pixels / self.factor_pixel_to_cm ,2)
+        self.radicle_length_cm = round(self.radicle_length_pixels / self.factor_pixel_to_cm, 2)
+        print(f"hyperCotyl_length_cm , radicle_length_cm : {self.hyperCotyl_length_cm}, {self.radicle_length_cm}")
 
     def analyzeSkeleton(self):
         skeletonAnayzer = SkeltonizerContour(self.imgBinarySeedWoHead, colorImg = self.cropped_seed_color, 
@@ -182,6 +193,7 @@ class Seed():
         self.hyperCotyl_length_pixels = skeletonAnayzer.hyperCotyl_length_pixels
         self.radicle_length_pixels = skeletonAnayzer.radicle_length_pixels
         self.total_length_pixels = self.hyperCotyl_length_pixels + self.radicle_length_pixels
+        self.ratio_h_root = round(self.hyperCotyl_length_pixels/self.radicle_length_pixels, 2) if self.radicle_length_pixels>0 else 'NA'
 
         if 'dead_seed_max_length' in self.dict_settings.keys():
             if self.total_length_pixels <= self.dict_settings['dead_seed_max_length']:
@@ -191,7 +203,11 @@ class Seed():
             else:
                 self.seed_health = SeedHealth.NORMAL_SEED
 
-
+        self.sorted_point_list = skeletonAnayzer.sorted_points_list
+        self.list_points_hypercotyl = skeletonAnayzer.list_hypercotyl_points
+        self.list_points_root = skeletonAnayzer.list_root_points
+        
+        self.calculate_values_in_cm()
 
     def make_offset(self):
         skeleton_copy = self.skeltonized.copy()
@@ -232,3 +248,66 @@ class Seed():
         
         # cv2.imshow("ENdpoints Intersections", skeleton_copy)
         # cv2.waitKey(-1)
+
+    def reassign_points(self, new_break_point):
+        """Function recalculates the hypercotyl and root length when input a user added breakpoint. 
+        """
+        # print("new_break_point",new_break_point)
+        # print(new_break_point in self.sorted_point_list)
+        # print(self.sorted_point_list)
+        
+
+        self.hyperCotyl_length_pixels , self.radicle_length_pixels=0,0
+        gotBreakPointFromBottom = False
+        if len(self.sorted_point_list)>0:
+            for i,j in self.sorted_point_list:
+                if [i,j] != new_break_point:
+                    pass
+                else:
+                    gotBreakPointFromBottom = True
+                
+                if not gotBreakPointFromBottom:
+                    ## root
+                        
+                    self.cropped_seed_color[i,j] = (255,0,0)
+                    
+                    self.radicle_length_pixels+=1
+                else:
+                    self.cropped_seed_color[i,j] = (0,255,0)
+                    self.hyperCotyl_length_pixels+=1
+            
+            
+            self.total_length_pixels = self.hyperCotyl_length_pixels + self.radicle_length_pixels
+            self.ratio_h_root = round(self.hyperCotyl_length_pixels/self.radicle_length_pixels, 2) if self.radicle_length_pixels>0 else 'NA'
+            print(f"hyperCotyl_length_pixels , radicle_length_pixels : {self.hyperCotyl_length_pixels}, {self.radicle_length_pixels}")
+            
+            ## CM calculations
+            self.calculate_values_in_cm()
+            # cv2.imshow('colorImg', self.colorImg)
+            # cv2.waitKey(1)
+        else:
+            print("No sorted point list...")
+
+    def erase_points(self, point):
+        # print('point',point)
+        # print('self.list_points_hypercotyl',self.list_points_hypercotyl)
+        if point in self.list_points_hypercotyl:
+            print("point found hypercotyl", point)
+            self.list_points_hypercotyl.remove(point)
+
+        for i, j in self.list_points_hypercotyl:
+            self.cropped_seed_color[i,j] = (255,0,0)
+
+        if point in self.list_points_root:
+            print("point found root", point)
+            self.list_points_root.remove(point)
+
+        for i, j in self.list_points_root:
+            self.cropped_seed_color[i,j] = (0,255,0)
+
+        self.hyperCotyl_length_pixels = len(self.list_points_hypercotyl)
+        self.radicle_length_pixels = len(self.list_points_root)
+        self.total_length_pixels = self.hyperCotyl_length_pixels + self.radicle_length_pixels
+        self.ratio_h_root =  round(self.hyperCotyl_length_pixels/self.radicle_length_pixels, 2) if self.radicle_length_pixels>0 else 'NA'
+
+        self.calculate_values_in_cm()

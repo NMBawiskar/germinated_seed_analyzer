@@ -9,9 +9,9 @@ def get_pixel_to_cm(img):
     upper = np.array([45,158,245])    
     mask = cv2.inRange(imgLab, lower, upper)
 
-    cv2.imshow('mask',mask)
+    # cv2.imshow('mask',mask)
 
-    cv2.waitKey(-1)
+    # cv2.waitKey(-1)
     contours, herirachy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     hImg, wImg = imgLab.shape[:2]
     wTotal = 0
