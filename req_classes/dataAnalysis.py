@@ -29,6 +29,7 @@ seedVigorIndex = max (0,  (1 - (summation_i_1_to_n( abs(Ti - T) / n * T) * 1000 
 from .contour_processor import Seed
 from proj_settings import MainSettings, SeedHealth
 import json
+import numpy as np
 
 settings_path = MainSettings.settings_json_file_path
 
@@ -57,16 +58,26 @@ class BatchAnalysisNew:
         self.uniformity = 0
         self.seed_vigor_index = 0
 
+        self.avg_total_length = 0  # in cm
+        self.avg_hypocotyl_length = 0  # in cm
+        self.avg_root_length = 0 # in cm
+        self.std_deviation = 0
+        self.germination_percent = 0
+
         self.recalculate_all_metrics()
 
 
     def recalculate_all_metrics(self):
+        
 
         self.get_seed_class_count()
+
+        self.calculate_averages()
         self.calculate_growth_or_Crescimento()
         self.calc_penalization()
         self.calculate_uniformity_or_Uniformidade()
         self.calculate_seed_vigor_index()
+        self.calculate_std_deviation_and_other()
 
     def get_seed_class_count(self):
         self.dead_seed_count, self.abnormal_seed_count, self.germinated_seed_count = 0,0,0
@@ -91,6 +102,27 @@ class BatchAnalysisNew:
         return self.penalization
 
 
+    def calculate_averages(self):
+        
+        self.list_total_seed_lengths = []
+        self.list_hypocotyl_seed_lengths = []
+        self.list_root_lengths = []
+
+
+        for seedObj in self.seedObjList:
+            
+            self.list_total_seed_lengths.append(seedObj.total_length_cm)
+            self.list_hypocotyl_seed_lengths.append(seedObj.hyperCotyl_length_cm)
+            self.list_root_lengths.append(seedObj.radicle_length_cm)
+
+        
+        self.avg_total_length = round(sum(self.list_total_seed_lengths) /  len(self.seedObjList), 2)
+        self.avg_hypocotyl_length = round(sum(self.list_hypocotyl_seed_lengths) /  len(self.seedObjList),2)
+        self.avg_root_length = round(sum(self.list_root_lengths) /  len(self.seedObjList), 2)
+        
+
+
+
     def calculate_uniformity_or_Uniformidade(self):
         # seedVigorIndex = max (0,  (1 - (summation_i_1_to_n( abs(Ti - T) / n * T) * 1000 )   -   Penalization   ))     
 
@@ -102,17 +134,10 @@ class BatchAnalysisNew:
         # else:
         #     medianSeedLength = sortedList[centralIndex]
 
-        totalSeedLength_batch = 0
-        self.list_total_seed_lengths = []
-        for seedObj in self.seedObjList:
-            totalSeedLength_batch += seedObj.total_length_pixels
-            self.list_total_seed_lengths.append(seedObj.total_length_pixels)
+               
+        abs_sum = sum([abs(l_seed - self.avg_total_length) for l_seed in self.list_total_seed_lengths])
 
-
-        avg_seed_length = totalSeedLength_batch / len(self.seedObjList) 
-        abs_sum = sum([abs(l_seed - avg_seed_length) for l_seed in self.list_total_seed_lengths])
-
-        uni_ = (1 -  (abs_sum / (self.n_total_seeds_in_image * avg_seed_length))) * 1000 - self.penalization 
+        uni_ = (1 -  (abs_sum / (self.n_total_seeds_in_image * self.avg_total_length))) * 1000 - self.penalization 
 
         self.uniformity = int(max(0, uni_))
 
@@ -120,14 +145,8 @@ class BatchAnalysisNew:
     def calculate_growth_or_Crescimento(self):
         """ growth (or Crescimento) = avg of seed lengths(rad+hyp) / max length * 1000
         """
-        totalSeedLength_batch = 0
-        self.list_total_seed_lengths = []
-        for seedObj in self.seedObjList:
-            totalSeedLength_batch += seedObj.total_length_pixels
-            self.list_total_seed_lengths.append(seedObj.total_length_pixels)
-
-        avg_seed_length = totalSeedLength_batch / len(self.seedObjList)
-        self.growth = avg_seed_length / max(self.list_total_seed_lengths) * 1000
+       
+        self.growth = self.avg_total_length / max(self.list_total_seed_lengths) * 1000
 
         
     def calculate_seed_vigor_index(self):
@@ -136,7 +155,9 @@ class BatchAnalysisNew:
         self.Pu = self.dict_settings['weights_factor_uniformity_Pu']
         self.seed_vigor_index = self.Pc * self.growth + self.Pu * self.uniformity
 
-
+    def calculate_std_deviation_and_other(self):
+        self.std_deviation = round(np.std(self.list_total_seed_lengths),2)
+        self.germination_percent =  round(self.germinated_seed_count/ self.n_total_seeds_in_image * 100, 2)
 
 
 

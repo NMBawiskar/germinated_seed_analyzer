@@ -507,8 +507,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 # total_lengths+= seedObj.total_length_pixels
                 # list_total_lengths.append(seedObj.total_length_pixels)
             
-            
+            self.std_deviation = batchAnalyserObj.std_deviation
             self.growth = round(batchAnalyserObj.growth,2)
+
+           
             self.penalization = round(batchAnalyserObj.penalization,2)
             self.uniformity = round(batchAnalyserObj.uniformity,2)
             self.seed_vigor_index = round(batchAnalyserObj.seed_vigor_index,2)
@@ -522,9 +524,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.label_uniformity.setText(str(self.uniformity))
             self.label_seedvigor.setText(str(self.seed_vigor_index))
             self.label_germination.setText(f"{self.germination_percent} %")
-            self.label_n_count_abnorm.setText(str(self.count_abnormal_seeds))
-            self.label_n_count_dead.setText(str(self.count_dead_seeds))
-            self.label_n_count_total.setText(str(self.n_seeds))
+            self.label_avg_hypocotyl.setText(str(batchAnalyserObj.avg_hypocotyl_length))
+            self.label_avg_root.setText(str(batchAnalyserObj.avg_root_length))
+            self.label_avg_total_length.setText(str(batchAnalyserObj.avg_total_length))
 
             self.model = TableModel(self.data_each_seed)
             self.model.columns=['Seedling', 'Hypocotyl', 'Root', 'Total', 'Hypocotyl/root ratio']
@@ -538,6 +540,10 @@ class MainWindow(QtWidgets.QMainWindow):
             imgPath = self.imagePaths[self.currentImgIndex]
             self.list_hypercotyl_radicle_lengths, colorImg, batchAnalyzerObj = self.mainProcessor.process_main(imgPath)
             self.batchAnalyzerObjList[self.currentImgIndex] = batchAnalyzerObj
+
+
+            self.std_deviation = batchAnalyzerObj.std_deviation
+            self.growth = round(batchAnalyzerObj.growth,2)
 
 
             ## save output image
@@ -571,8 +577,8 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.avg_length = total_lengths / self.n_seeds
         total_length_array = np.array(list_total_lengths)
-        self.std_deviation = round(np.std(total_length_array),2)
-        self.germination_percent = round(self.count_germinated_seeds/ self.n_seeds * 100, 2)
+        
+        
 
         self.show_analyzed_results()
 

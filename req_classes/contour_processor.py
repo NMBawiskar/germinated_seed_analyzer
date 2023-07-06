@@ -177,11 +177,11 @@ class Seed():
         # display_img('Skeletonized root',skelton_result)
 
     def calculate_values_in_cm(self):
-        print("self.factor_pixel_to_cm", self.factor_pixel_to_cm)
+        # print("self.factor_pixel_to_cm", self.factor_pixel_to_cm)
         self.total_length_cm = round(self.total_length_pixels / self.factor_pixel_to_cm, 2)
         self.hyperCotyl_length_cm = round(self.hyperCotyl_length_pixels / self.factor_pixel_to_cm ,2)
         self.radicle_length_cm = round(self.radicle_length_pixels / self.factor_pixel_to_cm, 2)
-        print(f"hyperCotyl_length_cm , radicle_length_cm : {self.hyperCotyl_length_cm}, {self.radicle_length_cm}")
+        # print(f"hyperCotyl_length_cm , radicle_length_cm : {self.hyperCotyl_length_cm}, {self.radicle_length_cm}")
 
     def analyzeSkeleton(self):
         skeletonAnayzer = SkeltonizerContour(self.imgBinarySeedWoHead, colorImg = self.cropped_seed_color, 
@@ -256,7 +256,7 @@ class Seed():
         # print(new_break_point in self.sorted_point_list)
         # print(self.sorted_point_list)
         
-
+        print('reassign_points')
         self.hyperCotyl_length_pixels , self.radicle_length_pixels=0,0
         gotBreakPointFromBottom = False
         if len(self.sorted_point_list)>0:
@@ -279,7 +279,7 @@ class Seed():
             
             self.total_length_pixels = self.hyperCotyl_length_pixels + self.radicle_length_pixels
             self.ratio_h_root = round(self.hyperCotyl_length_pixels/self.radicle_length_pixels, 2) if self.radicle_length_pixels>0 else 'NA'
-            print(f"hyperCotyl_length_pixels , radicle_length_pixels : {self.hyperCotyl_length_pixels}, {self.radicle_length_pixels}")
+            # print(f"hyperCotyl_length_pixels , radicle_length_pixels : {self.hyperCotyl_length_pixels}, {self.radicle_length_pixels}")
             
             ## CM calculations
             self.calculate_values_in_cm()
@@ -289,18 +289,19 @@ class Seed():
             print("No sorted point list...")
 
     def erase_points(self, point):
-        # print('point',point)
+        # print('erase points',point)
         # print('self.list_points_hypercotyl',self.list_points_hypercotyl)
         if point in self.list_points_hypercotyl:
             print("point found hypercotyl", point)
             self.list_points_hypercotyl.remove(point)
-
+            print("len(self.list_points_hypercotyl)",len(self.list_points_hypercotyl))
         for i, j in self.list_points_hypercotyl:
             self.cropped_seed_color[i,j] = (255,0,0)
 
         if point in self.list_points_root:
             print("point found root", point)
             self.list_points_root.remove(point)
+            print("len(self.list_points_root)",len(self.list_points_root))
 
         for i, j in self.list_points_root:
             self.cropped_seed_color[i,j] = (0,255,0)
