@@ -19,7 +19,9 @@ class GlobalSettings(QWidget):
         self.lineEdit_abnormal_seedL.setText(str(self.mainUi.abnormal_seed_max_length_r_h))
         self.lineEdit_normal_seedL.setText(str(self.mainUi.normal_seed_max_length_r_h))
         self.lineEdit_avg_rad_length.setText(str(self.mainUi.thres_avg_max_radicle_thickness))
-        
+        self.lineEdit_avg_seed_length.setText(str(self.mainUi.average_seed_total_length))
+
+
         self.spinBox_n_seg.setValue(self.mainUi.n_segments_each_skeleton)
         self.doubleSpinBox_pc.setValue(self.mainUi.weights_factor_growth_Pc)
         self.doubleSpinBox_pu.setValue(self.mainUi.weights_factor_uniformity_Pu)
@@ -41,6 +43,12 @@ class GlobalSettings(QWidget):
         if len(self.lineEdit_avg_rad_length.text())>0 and self.lineEdit_avg_rad_length.text().isnumeric():
             self.mainUi.thres_avg_max_radicle_thickness =  int(self.lineEdit_avg_rad_length.text())
             self.mainUi.dict_settings['thresh_avg_max_radicle_thickness'] =  int(self.lineEdit_avg_rad_length.text())
+
+        if len(self.lineEdit_avg_seed_length.text())>0 and self.lineEdit_avg_seed_length.text().isnumeric():
+            self.mainUi.average_seed_total_length =  int(self.lineEdit_avg_seed_length.text())
+            self.mainUi.dict_settings['average_seed_total_length'] =  int(self.lineEdit_avg_seed_length.text())
+        
+        
             
         self.mainUi.n_segments_each_skeleton = self.spinBox_n_seg.value()           # divisions to make in each length (Increase this for finer results)
         self.mainUi.dict_settings['no_of_segments_each_skeleton'] =  self.spinBox_n_seg.value()                                                                   # avg thickness to distinguish radicle (tune this if camera position changes)

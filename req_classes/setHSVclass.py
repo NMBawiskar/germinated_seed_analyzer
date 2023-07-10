@@ -3,6 +3,14 @@ from PyQt5.QtWidgets import  QWidget
 from PyQt5.uic import loadUi
 from utils_pyqt5 import showdialog, show_cv2_img_on_label_obj
 from utils import *
+import os
+from PyQt5.QtWidgets import QWidget, QFileDialog
+from proj_settings import MainSettings
+import json
+
+
+settings_path = MainSettings.settings_json_file_path
+
 
 class SetHSV(QWidget):
     def __init__(self, mainUi):
@@ -10,6 +18,13 @@ class SetHSV(QWidget):
         loadUi(r'UI_files\set_hsv_ui.ui', self)
         self.mainUi = mainUi
         self.setWindowIconText("HSV")
+
+        self.dict_settings = {}
+
+        settings_path = MainSettings.settings_json_file_path
+
+        with open(settings_path, 'r') as f:
+            self.dict_settings = json.load(f)
 
 
         self.slider_hmin.setMinimum(0)
@@ -19,7 +34,11 @@ class SetHSV(QWidget):
         self.slider_vmin.setMinimum(0)
         self.slider_vmax.setMaximum(255)
 
-        self.hsvValuesToread = self.mainUi.hsv_values_seed_heads
+        self.hsvValuesToread = [self.dict_settings['hmin_head'], self.dict_settings['hmax_head'],
+                                self.dict_settings['smin_head'], self.dict_settings['smax_head'],
+                                self.dict_settings['vmin_head'], self.dict_settings['vmax_head']]
+        
+        self.updateValuesForPartType()
 
         self.slider_hmin.valueChanged.connect(self.updateValues)
         self.slider_hmax.valueChanged.connect(self.updateValues)
@@ -39,15 +58,33 @@ class SetHSV(QWidget):
         self.seedPart = 'Head'
         self.btnSave.clicked.connect(self.save_values)
         self.btnCancel.clicked.connect(self.close_window)
+        self.btn_upload_img.clicked.connect(self.uploadImg)
+        # self.imgPath = "self.mainUi.imagePaths[self.mainUi.currentImgIndex]"
+    
+    
+        self.imgPath = ""
+        self.img = None
 
-        self.imgPath = self.mainUi.imagePaths[self.mainUi.currentImgIndex]
-        self.img = cv2.imread(self.imgPath)
+    def uploadImg(self):
+        qWid = QWidget()
+        print("file browse")
+        filepath, _ = QFileDialog.getOpenFileName(qWid, 'Select measurements caliberation image','',"Image files (*.jpg)")
+        if not os.path.exists(filepath):
+            showdialog("Please select a file")
+        else:
+            self.img = cv2.imread(filepath)
+            self.load_img()
+    
+    def load_img(self):
+        
         
         self.maskHSV = get_HSV_mask(self.img, self.hsvValuesToread)
         self.maskConcat = get_Concat_img_with_hsv_mask(self.img, self.maskHSV)
+        # cv2.imshow('self.maskConcat', self.maskConcat)
+        # cv2.waitKey(1)
 
         show_cv2_img_on_label_obj(self.imgLabel_hsv, self.maskConcat)
-        self.updateValuesForPartType()
+        # self.updateValuesForPartType()
 
 
     def updateValuesForPartType(self):
@@ -61,10 +98,14 @@ class SetHSV(QWidget):
         newHSV_values = [int(self.slider_hmin.value()), int(self.slider_hmax.value()),
                             int(self.slider_smin.value()),int(self.slider_smax.value()),
                             int(self.slider_vmin.value()), int(self.slider_vmax.value())]
-        self.maskHSV = get_HSV_mask(self.img, newHSV_values)
-        self.maskConcat = get_Concat_img_with_hsv_mask(self.img, self.maskHSV)
+        
+
         self.show_current_values()
-        show_cv2_img_on_label_obj(self.imgLabel_hsv, self.maskConcat)
+
+        if self.img is not None:
+            self.maskHSV = get_HSV_mask(self.img, newHSV_values)
+            self.maskConcat = get_Concat_img_with_hsv_mask(self.img, self.maskHSV)
+            show_cv2_img_on_label_obj(self.imgLabel_hsv, self.maskConcat)
 
     def save_values(self): 
         print("saving the values...")
@@ -76,6 +117,30 @@ class SetHSV(QWidget):
         self.hsvValuesToread[5] = int(self.slider_vmax.value())  
 
         print("final hsv values to save", self.hsvValuesToread)
+        if self.seedPart=="Head":
+            self.mainUi.dict_settings['hmin_head'] = self.hsvValuesToread[0]
+            self.mainUi.dict_settings['hmax_head'] = self.hsvValuesToread[1]
+            self.mainUi.dict_settings['smin_head'] = self.hsvValuesToread[2]
+            self.mainUi.dict_settings['smax_head'] = self.hsvValuesToread[3]
+            self.mainUi.dict_settings['vmin_head'] = self.hsvValuesToread[4]
+            self.mainUi.dict_settings['vmax_head'] = self.hsvValuesToread[5]
+
+
+            print("setting hsvValuesToread of head",self.hsvValuesToread)
+
+        elif self.seedPart=="Body":
+            self.mainUi.dict_settings['hmin_body'] = self.hsvValuesToread[0]
+            self.mainUi.dict_settings['hmax_body'] = self.hsvValuesToread[1]
+            self.mainUi.dict_settings['smin_body'] = self.hsvValuesToread[2]
+            self.mainUi.dict_settings['smax_body'] = self.hsvValuesToread[3]
+            self.mainUi.dict_settings['vmin_body'] = self.hsvValuesToread[4]
+            self.mainUi.dict_settings['vmax_body'] = self.hsvValuesToread[5]
+
+            print("setting hsvValuesToread of body", self.hsvValuesToread)
+
+        self.mainUi.save_settings_to_file()
+        showdialog("HSV settings saved successfully!!")
+        self.close_window()
 
     def onClicked(self):
         radioButton = self.sender()
@@ -84,11 +149,16 @@ class SetHSV(QWidget):
             self.seedPart = radioButton.seed_part
 
             if self.seedPart=="Head":
-                self.hsvValuesToread= self.mainUi.hsv_values_seed_heads
-                print("setting hsvValuesToread of head", self.mainUi.hsv_values_seed_heads)
+                self.hsvValuesToread= [self.dict_settings['hmin_head'], self.dict_settings['hmax_head'],
+                                self.dict_settings['smin_head'], self.dict_settings['smax_head'],
+                                self.dict_settings['vmin_head'], self.dict_settings['vmax_head']]
+                
+                print("setting hsvValuesToread of head", self.hsvValuesToread)
             elif self.seedPart=="Body":
-                self.hsvValuesToread= self.mainUi.hsv_values_seed
-                print("setting hsvValuesToread of body", self.mainUi.hsv_values_seed)
+                self.hsvValuesToread= [self.dict_settings['hmin_body'], self.dict_settings['hmax_body'],
+                                self.dict_settings['smin_body'], self.dict_settings['smax_body'],
+                                self.dict_settings['vmin_body'], self.dict_settings['vmax_body']]
+                print("setting hsvValuesToread of body", self.hsvValuesToread)
             
             self.updateValuesForPartType()
 

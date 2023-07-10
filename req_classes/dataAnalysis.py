@@ -30,18 +30,19 @@ from .contour_processor import Seed
 from proj_settings import MainSettings, SeedHealth
 import json
 import numpy as np
+import traceback
 
 settings_path = MainSettings.settings_json_file_path
 
-with open(settings_path, 'r') as f:
-    dict_settings = json.load(f)
+# with open(settings_path, 'r') as f:
+#     dict_settings = json.load(f)
 
 
 
 class BatchAnalysisNew:
     def __init__(self, img_path, batchNumber, seedObjList:list[Seed]):
         self.batchNumber = batchNumber
-        self.dict_settings = dict_settings
+        self.dict_settings = None
         self.seedObjList = seedObjList
 
 
@@ -68,7 +69,14 @@ class BatchAnalysisNew:
 
 
     def recalculate_all_metrics(self):
-        
+
+        settings_path = MainSettings.settings_json_file_path
+
+        with open(settings_path, 'r') as f:
+            self.dict_settings = json.load(f)
+
+
+                
 
         self.get_seed_class_count()
 
@@ -116,10 +124,15 @@ class BatchAnalysisNew:
             self.list_root_lengths.append(seedObj.radicle_length_cm)
 
         
-        self.avg_total_length = round(sum(self.list_total_seed_lengths) /  len(self.seedObjList), 2)
-        self.avg_hypocotyl_length = round(sum(self.list_hypocotyl_seed_lengths) /  len(self.seedObjList),2)
-        self.avg_root_length = round(sum(self.list_root_lengths) /  len(self.seedObjList), 2)
-        
+        # self.avg_total_length = round(sum(self.list_total_seed_lengths) /  len(self.seedObjList), 2)
+        self.avg_total_length = self.dict_settings['average_seed_total_length']
+        try:
+
+            self.avg_hypocotyl_length = round(sum(self.list_hypocotyl_seed_lengths) /  len(self.seedObjList),2)
+            self.avg_root_length = round(sum(self.list_root_lengths) /  len(self.seedObjList), 2)
+        except Exception as e:
+            print(traceback.format_exc())
+            
 
 
 

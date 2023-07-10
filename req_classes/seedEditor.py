@@ -254,6 +254,9 @@ class SeedEditor(QWidget):
         self.customLabel.canvasMask.save('customCanvas.png')
         imgUpdated = cv2.imread('customCanvas.png')
         self.seedObj.skeltonized = imgUpdated
+
+
+        self.mainUi.save_results_to_csv()
         # cv2.imshow('updatedQIMG',self.seedObj.skeltonized)
         # cv2.imshow('self.customLabel.updated_img',self.customLabel.updated_img)
         # cv2.waitKey(1)
@@ -336,6 +339,7 @@ class SeedEditor(QWidget):
         # self.canvasMask_seededitor = QtGui.QPixmap.fromImage(imMask)
         self.label_img_seed_mask.setPixmap(QPixmap.fromImage(ImageQt(imgPilMask)))
         print('set pixmap color')
+        
 
         # self.display_mask()
 
