@@ -222,7 +222,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.save_settings_to_file()
         ut.showdialog("Default settings restored successfully!!!")
 
-
     def set_pixel_cm_values(self):
         """Function to upload caliberation image"""
 
@@ -246,8 +245,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.save_settings_to_file()
 
     def import_settings(self):
-            
-
+        
         qWid = QWidget()
         print("file browse")
         filepath,_ = QFileDialog.getOpenFileName(qWid, 'Select File', "","Json File (*.json)")        
@@ -321,8 +319,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
             
         self.show_analyzed_results()
-
-
 
     def set_file_name(self):
             
@@ -541,8 +537,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.model.columns=['Seedling', 'Hypocotyl (cm)', 'Root (cm)', 'Total (cm)', 'Hypocotyl/root ratio']
             self.tableView_res.setModel(self.model)
 
-
-
     def show_analyzed_results(self):
         batchAnalyserObj = self.batchAnalyzerObjList[self.currentImgIndex]
         if batchAnalyserObj is not None:
@@ -581,7 +575,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.model.columns=['Seedling', 'Hypocotyl', 'Root', 'Total', 'Hypocotyl/root ratio']
             self.tableView_res.setModel(self.model)
 
-            
 
     def process_img_and_display_results(self):
         
@@ -676,7 +669,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.pixmap = QtGui.QPixmap.fromImage(qImg)
         # self.imgLabel.setPixmap(self.pixmap)
         self.viewer.setPhoto(self.pixmap)
-      
+  
     
     def resize_and_relocate(self, obj):
         old_x = obj.x()

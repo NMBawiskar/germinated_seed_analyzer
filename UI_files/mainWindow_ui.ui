@@ -357,9 +357,9 @@ border:2px solid rgb(64, 109, 255);</string>
     <property name="geometry">
      <rect>
       <x>1280</x>
-      <y>70</y>
+      <y>120</y>
       <width>611</width>
-      <height>181</height>
+      <height>131</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_right">
@@ -526,10 +526,10 @@ border-radius:4;</string>
    <widget class="QLabel" name="label_logo">
     <property name="geometry">
      <rect>
-      <x>1450</x>
+      <x>1370</x>
       <y>10</y>
-      <width>281</width>
-      <height>41</height>
+      <width>421</width>
+      <height>91</height>
      </rect>
     </property>
     <property name="text">

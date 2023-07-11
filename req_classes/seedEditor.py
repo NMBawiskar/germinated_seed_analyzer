@@ -305,13 +305,13 @@ class SeedEditor(QWidget):
         self.mainUi.summarize_results()
         self.update_values()
 
-    def setColorPixmap(self):
-        # Load skeletonized mask for editing
-        rgb_image = cv2.cvtColor(self.seedObj.cropped_seed_color, cv2.COLOR_BGR2RGB)
-        imgPilMask = Image.fromarray(rgb_image).convert('RGB')        
-        # imMask = ImageQt(imgPilMask).copy()
-        # self.canvasMask_seededitor= QtGui.QPixmap.fromImage(imMask)
-        self.label_img_seed_mask.setPixmap(QPixmap.fromImage(ImageQt(imgPilMask)))
+    # def setColorPixmap(self):
+    #     # Load skeletonized mask for editing
+    #     rgb_image = cv2.cvtColor(self.seedObj.cropped_seed_color, cv2.COLOR_BGR2RGB)
+    #     imgPilMask = Image.fromarray(rgb_image).convert('RGB')        
+    #     # imMask = ImageQt(imgPilMask).copy()
+    #     # self.canvasMask_seededitor= QtGui.QPixmap.fromImage(imMask)
+    #     self.label_img_seed_mask.setPixmap(QPixmap.fromImage(ImageQt(imgPilMask)))
 
     def setSeedObj(self,seedObj):
         self.seedObj = seedObj
@@ -335,9 +335,9 @@ class SeedEditor(QWidget):
         # Load cropped_seed_color mask for editing
         rgb_image = cv2.cvtColor(self.seedObj.cropped_seed_color, cv2.COLOR_BGR2RGB)
         imgPilMask = Image.fromarray(rgb_image).convert('RGB')        
-        # imMask = ImageQt(imgPilMask).copy()
-        # self.canvasMask_seededitor = QtGui.QPixmap.fromImage(imMask)
-        self.label_img_seed_mask.setPixmap(QPixmap.fromImage(ImageQt(imgPilMask)))
+        # # imMask = ImageQt(imgPilMask).copy()
+        # # self.canvasMask_seededitor = QtGui.QPixmap.fromImage(imMask)
+        # self.label_img_seed_mask.setPixmap(QPixmap.fromImage(ImageQt(imgPilMask)))
         print('set pixmap color')
         
 
@@ -355,7 +355,7 @@ class SeedEditor(QWidget):
         self.label_total_length.setText(str(self.seedObj.total_length_pixels))
         self.label_seed_health.setText(self.seedObj.seed_health)
 
-        self.setColorPixmap()
+        # self.setColorPixmap()
 
         self.mainUi.show_analyzed_results()
     
