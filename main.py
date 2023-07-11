@@ -292,10 +292,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.seedEditorObj.setSeedIndex(seedIndex)
         
         # ut.show_cv2_img_on_label_obj(uiObj= self.seedEditorObj.label_img_seed ,img = seedObjSelected.cropped_seed_color)
-        try:
-            self.seedEditorObj.update_values()
-        except Exception as e:
-            print(traceback.format_exc())
+        # try:
+        #     self.seedEditorObj.update_values()
+        # except Exception as e:
+        #     print(traceback.format_exc())
         try:
             self.window = self.seedEditorObj
             self.window.show()

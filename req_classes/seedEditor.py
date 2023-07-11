@@ -11,18 +11,18 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtGui import QPainter, QColor, QFont
 from PyQt5.QtCore import Qt, QPoint
 
-def QImageToCvMat(incomingImage):
-    '''  Converts a QImage into an opencv MAT format  '''
+# def QImageToCvMat(incomingImage):
+#     '''  Converts a QImage into an opencv MAT format  '''
 
-    incomingImage = incomingImage.convertToFormat(QtGui.QImage.Format.Format_RGBA8888)
+#     incomingImage = incomingImage.convertToFormat(QtGui.QImage.Format.Format_RGBA8888)
 
-    width = incomingImage.width()
-    height = incomingImage.height()
+#     width = incomingImage.width()
+#     height = incomingImage.height()
 
-    ptr = incomingImage.bits()
-    ptr.setsize(height * width * 4)
-    arr = np.frombuffer(ptr, np.uint8).reshape((height, width, 4))
-    return arr
+#     ptr = incomingImage.bits()
+#     ptr.setsize(height * width * 4)
+#     arr = np.frombuffer(ptr, np.uint8).reshape((height, width, 4))
+#     return arr
 
 class CanvasLabel(QLabel):
     def __init__(self, parent=None):
@@ -48,9 +48,7 @@ class CanvasLabel(QLabel):
         self.pen_thickness= 2
         self.pen_color_mask = QtGui.QColor('black')
         
-        # self.seedObj = seedObj
-        
-        # self.setScaledContents(True)
+  
         self.updated_img = None
 
     def apply_cv2_image(self, imgcv2):
@@ -159,38 +157,6 @@ class CanvasLabel(QLabel):
         self.seedEditor.update_values()
 
 
-        ################ paint mask ###################
-        # painter = QtGui.QPainter(self.label_paint_area.pixmap())
-        # painter = QtGui.QPainter(self.canvasMask)
-       
-
-        # # SET PEN
-        # p = painter.pen()
-        # p.setWidth(self.pen_thickness)
-        # p.setColor(self.pen_color_mask)
-        # painter.setPen(p)
-        # # print('a0', a0.x(), a0.y())
-
-        
-        # self.drawX = int((a0.x()) / self.w * self.imgW) 
-        # self.drawY = int((a0.y()) / self.h * self.imgH)
-        # # self.drawX = int(a0.x() - self.delta_x)
-        # # self.drawY = int(a0.y() - self.delta_y)
-
-    
-        # painter.drawLine(self.last_x, self.last_y, self.drawX, self.drawY)
-        # painter.end()
-        # self.setPixmap(self.canvasMask)
-        # updatedQImg = self.pixmap().toImage()
-        # self.updated_img = QImageToCvMat(updatedQImg)
-        # self.seedObj.erase_points(point = [self.drawY, self.drawX])
-        # self.update()
-        # self.seedEditor.update_values()
-
-
-        # self.last_x = self.drawX
-        # self.last_y = self.drawY
-
         return super().mouseMoveEvent(a0)
 
 
@@ -245,8 +211,10 @@ class SeedEditor(QWidget):
         # self.label_paint_h = 781  ## To set afterwards
 
         self.customLabel = CanvasLabel(self)
+        self.customLabel.setObjectName("img_label_mask")
         self.customLabel.seedEditor = self
-        self.customLabel.show()
+        # self.customLabel.show()
+       
         
 
     def save_changes(self):
@@ -303,20 +271,20 @@ class SeedEditor(QWidget):
             self.seedObj.seed_health = SeedHealth.DEAD_SEED
 
         self.mainUi.summarize_results()
-        self.update_values()
+        # self.update_values()
 
-    # def setColorPixmap(self):
-    #     # Load skeletonized mask for editing
-    #     rgb_image = cv2.cvtColor(self.seedObj.cropped_seed_color, cv2.COLOR_BGR2RGB)
-    #     imgPilMask = Image.fromarray(rgb_image).convert('RGB')        
-    #     # imMask = ImageQt(imgPilMask).copy()
-    #     # self.canvasMask_seededitor= QtGui.QPixmap.fromImage(imMask)
-    #     self.label_img_seed_mask.setPixmap(QPixmap.fromImage(ImageQt(imgPilMask)))
+    def setColorPixmap(self):
+        # Load skeletonized mask for editing
+        rgb_image = cv2.cvtColor(self.seedObj.cropped_seed_color, cv2.COLOR_BGR2RGB)
+        imgPilMask = Image.fromarray(rgb_image.copy()).convert('RGB')        
+        imMask = ImageQt(imgPilMask).copy()
+        self.canvasMask_seededitor= QtGui.QPixmap.fromImage(imMask)
+        self.label_img_seed_mask.setPixmap(self.canvasMask_seededitor)
 
     def setSeedObj(self,seedObj):
         self.seedObj = seedObj
    
-
+        self.update_values()
 
         self.imgH, self.imgW = self.seedObj.skeltonized.shape[:2]
         print(self.imgH, self.imgW)
@@ -333,11 +301,11 @@ class SeedEditor(QWidget):
         self.label_img_seed_mask.setGeometry(self.delta_x, self.customLabel.y, self.customLabel.w, self.customLabel.h)
         print('set geometry for color label')
         # Load cropped_seed_color mask for editing
-        rgb_image = cv2.cvtColor(self.seedObj.cropped_seed_color, cv2.COLOR_BGR2RGB)
-        imgPilMask = Image.fromarray(rgb_image).convert('RGB')        
+        rgb_image_color = cv2.cvtColor(self.seedObj.cropped_seed_color, cv2.COLOR_BGR2RGB)
+        imgPilMask_color = Image.fromarray(rgb_image_color).convert('RGB')        
         # # imMask = ImageQt(imgPilMask).copy()
         # # self.canvasMask_seededitor = QtGui.QPixmap.fromImage(imMask)
-        # self.label_img_seed_mask.setPixmap(QPixmap.fromImage(ImageQt(imgPilMask)))
+        # self.label_img_seed_mask.setPixmap(QPixmap.fromImage(ImageQt(imgPilMask_color)))
         print('set pixmap color')
         
 
@@ -347,6 +315,8 @@ class SeedEditor(QWidget):
         self.seedNo = seedIndex + 1
         print('set seed index no', self.seedNo)
 
+        # self.setColorPixmap()
+
     def update_values(self):
         
         self.label_seed_no.setText(str(self.seedNo))
@@ -355,7 +325,7 @@ class SeedEditor(QWidget):
         self.label_total_length.setText(str(self.seedObj.total_length_pixels))
         self.label_seed_health.setText(self.seedObj.seed_health)
 
-        # self.setColorPixmap()
+        self.setColorPixmap()
 
         self.mainUi.show_analyzed_results()
     
