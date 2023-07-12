@@ -170,7 +170,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.create_dirs(list_dir)
         self.create_settings_if_not_present()
         self.read_settings()
-        
+        # customCursor = QtGui.QPixmap((32,32))
+        # # customCursor.fill()
+
+
+        # self.setCursor()
 
         imgLogo = cv2.imread('resources/ProSeedling_logo_cropped.png')
         ut.apply_img_to_label_object('resources/ProSeedling_logo_cropped_transparent.png', self.label_logo)

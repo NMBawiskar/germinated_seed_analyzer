@@ -292,21 +292,21 @@ class Seed():
             print("No sorted point list...")
 
     def erase_points(self, point):
-        print('erase points',point)
-        print('self.list_points_hypercotyl',self.list_points_hypercotyl)
+        # print('erase points',point)
+        # print('self.list_points_hypercotyl',self.list_points_hypercotyl)
         if point in self.list_points_hypercotyl:
-            print("point found hypercotyl", point)
+            # print("point found hypercotyl", point)
             self.list_points_hypercotyl.remove(point)
-            print("len(self.list_points_hypercotyl)",len(self.list_points_hypercotyl))
+            # print("len(self.list_points_hypercotyl)",len(self.list_points_hypercotyl))
             i,j = point
             # self.cropped_seed_color[i,j] = (255,255,255)
         
         # self.colorImgCopy
 
         if point in self.list_points_root:
-            print("point found root", point)
+            # print("point found root", point)
             self.list_points_root.remove(point)
-            print("len(self.list_points_root)",len(self.list_points_root))
+            # print("len(self.list_points_root)",len(self.list_points_root))
             i,j = point
             # self.cropped_seed_color[i,j] = (70,70,70)
 

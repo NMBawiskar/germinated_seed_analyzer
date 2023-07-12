@@ -10,7 +10,7 @@ from PIL.ImageQt import ImageQt
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtGui import QPainter, QColor, QFont
 from PyQt5.QtCore import Qt, QPoint
-
+from PyQt5.QtWidgets import QApplication
 # def QImageToCvMat(incomingImage):
 #     '''  Converts a QImage into an opencv MAT format  '''
 
@@ -46,7 +46,10 @@ class CanvasLabel(QLabel):
         self.last_x, self.last_y = None, None
         self.pen_draw_color = [0,255,0]
         self.pen_thickness= 2
+        self.pen_thickness_eraser = 10
         self.pen_color_mask = QtGui.QColor('black')
+
+        self.setCursor(Qt.CursorShape.CrossCursor)
         
   
         self.updated_img = None
@@ -86,7 +89,7 @@ class CanvasLabel(QLabel):
 
         if self.breakPointActive:
             ## find closest point on contour 
-
+            # QApplication.setOverrideCursor(Qt.CursorShape.CrossCursor)
             ## Reload pixmap
             # Load skeletonized mask for editing
             rgb_image = cv2.cvtColor(self.seedObj.skeltonized, cv2.COLOR_BGR2RGB)
@@ -127,18 +130,18 @@ class CanvasLabel(QLabel):
             
             painter = QtGui.QPainter(self.canvasMask)
            
-
+            # QApplication.setOverrideCursor(Qt.CursorShape.SizeAllCursor)
             # SET PEN
 
             p = painter.pen()
             self.pen_color_mask = QtGui.QColor('black')
             # print('setting pen to black')
-            pen_thickness = 5
-            p.setWidth(5)
+            
+            p.setWidth(self.pen_thickness_eraser)
             p.setColor(self.pen_color_mask)
             painter.setPen(p)
             
-            closest_points_list_ =  find_closest_n_points(contour=self.seedObj.sorted_point_list, point = (self.drawY, self.drawX), no_points=pen_thickness)
+            closest_points_list_ =  find_closest_n_points(contour=self.seedObj.sorted_point_list, point = (self.drawY, self.drawX), no_points=self.pen_thickness_eraser)
             # closest_point_cnt = find_closest_point(contour=self.seedObj.sorted_point_list, point = (self.drawY, self.drawX))
             closest_point_cnt = closest_points_list_[0]
 
@@ -162,7 +165,7 @@ class CanvasLabel(QLabel):
         
         self.seedEditor.update_values()
 
-
+        QApplication.restoreOverrideCursor()
         return super().mouseMoveEvent(a0)
 
 
