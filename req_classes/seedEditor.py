@@ -129,24 +129,30 @@ class CanvasLabel(QLabel):
            
 
             # SET PEN
+
             p = painter.pen()
             self.pen_color_mask = QtGui.QColor('black')
-            print('setting pen to black')
-            p.setWidth(self.pen_thickness)
+            # print('setting pen to black')
+            pen_thickness = 5
+            p.setWidth(5)
             p.setColor(self.pen_color_mask)
             painter.setPen(p)
             
-           
+            closest_points_list_ =  find_closest_n_points(contour=self.seedObj.sorted_point_list, point = (self.drawY, self.drawX), no_points=pen_thickness)
+            # closest_point_cnt = find_closest_point(contour=self.seedObj.sorted_point_list, point = (self.drawY, self.drawX))
+            closest_point_cnt = closest_points_list_[0]
 
-        
-            painter.drawLine(self.last_x, self.last_y, self.drawX, self.drawY)
+            qPoint = QPoint(closest_point_cnt[1], closest_point_cnt[0])
+            painter.drawPoint(qPoint)
             painter.end()
             self.setPixmap(self.canvasMask)
             self.update()
             self.seedEditor.update()
             
-            print("erasing points function")          
-            self.seedObj.erase_points(point=[self.drawY, self.drawX])
+            # print("erasing points function")          
+            for pnt in closest_points_list_:
+                # painter.drawLine(self.last_x, self.last_y, self.drawX, self.drawY)
+                self.seedObj.erase_points(point=pnt)
 
             
             # update origin

@@ -110,3 +110,8 @@ def find_closest_point(contour, point):
             closest_point = contour_point
 
     return closest_point
+
+def find_closest_n_points(contour, point, no_points=2):
+    sortedPoints = sorted(contour, key=lambda x:find_dist(x, point))
+    
+    return sortedPoints[:no_points]

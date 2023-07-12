@@ -81,6 +81,7 @@ class Seed():
         self.imgBinarySeed = imgBinarySeed
         self.imgBinaryHead = imgBinaryHeadOnly
         self.colorImg = imgColor
+        self.colorImgCopy = imgColor.copy()
         self.xywh = xywh  ## Location of seed in image
         self.n_segments_each_skeleton = n_segments_each_skeleton    # divisions to make in each length
         self.thres_avg_max_radicle_thickness = thres_avg_max_radicle_thickness # avg thickness to distinguish radicle and hypercotyl
@@ -115,6 +116,8 @@ class Seed():
         self.cropped_head_binary = cropImg(self.imgBinaryHead, self.xywh)
         self.cropped_seed_binary = cropImg(self.imgBinarySeed, self.xywh)
         self.cropped_seed_color = cropImg(self.colorImg, self.xywh)
+        
+
         self.imgBinarySeedWoHead = cv2.subtract(self.cropped_seed_binary, self.cropped_head_binary)
 
         # display_img('cropped_seed_color',self.cropped_seed_color)
@@ -289,22 +292,34 @@ class Seed():
             print("No sorted point list...")
 
     def erase_points(self, point):
-        # print('erase points',point)
-        # print('self.list_points_hypercotyl',self.list_points_hypercotyl)
+        print('erase points',point)
+        print('self.list_points_hypercotyl',self.list_points_hypercotyl)
         if point in self.list_points_hypercotyl:
             print("point found hypercotyl", point)
             self.list_points_hypercotyl.remove(point)
             print("len(self.list_points_hypercotyl)",len(self.list_points_hypercotyl))
-        for i, j in self.list_points_hypercotyl:
-            self.cropped_seed_color[i,j] = (255,0,0)
+            i,j = point
+            # self.cropped_seed_color[i,j] = (255,255,255)
+        
+        # self.colorImgCopy
 
         if point in self.list_points_root:
             print("point found root", point)
             self.list_points_root.remove(point)
             print("len(self.list_points_root)",len(self.list_points_root))
+            i,j = point
+            # self.cropped_seed_color[i,j] = (70,70,70)
 
+        imgCopy = cropImg(self.colorImgCopy, self.xywh).copy()
+        # cv2.imshow('before corrected', imgCopy)
+        for i, j in self.list_points_hypercotyl:
+            imgCopy[i,j] = (255,0,0)
         for i, j in self.list_points_root:
-            self.cropped_seed_color[i,j] = (0,255,0)
+            imgCopy[i,j] = (0,255,0)
+        
+        # cv2.imshow('corrected', imgCopy)
+        # cv2.waitKey(1)
+        self.cropped_seed_color = imgCopy
 
         self.hyperCotyl_length_pixels = len(self.list_points_hypercotyl)
         self.radicle_length_pixels = len(self.list_points_root)

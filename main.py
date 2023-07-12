@@ -458,7 +458,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.load_images()
         if len(self.imagePaths)>0:
             ## NOTE: uncomment this 
-            # self.give_inputs()
+            self.give_inputs()
 
             self.output_dir = os.path.join(self.input_folder_path, str(self.batchNo))
             self.output_results_dir = os.path.join(self.output_dir, 'results')
