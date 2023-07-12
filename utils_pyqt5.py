@@ -4,7 +4,7 @@ from PIL.ImageQt import ImageQt
 from PIL import Image
 from PyQt5.QtWidgets import QWidget, QFileDialog
 from PyQt5.QtGui import QImage, QPixmap
-
+import cv2
 
 def create_directory(path):
     try:
@@ -28,8 +28,14 @@ def apply_img_to_label_object(imgPath, labelObject):
 
 def show_cv2_img_on_label_obj(uiObj, img):
     qformat = QImage.Format_BGR888
-    img = QImage(img, img.shape[1], img.shape[0], qformat)
-    uiObj.setPixmap(QPixmap.fromImage(img))
+    print(img.shape)
+    # bytes_per_line = img.shape[2] * 3 
+    img_ = QImage(img, img.shape[1], img.shape[0], qformat)
+    uiObj.setPixmap(QPixmap.fromImage(img_))
+    
+    # rgb_image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # PIL_image = Image.fromarray(rgb_image).convert('RGB')    
+    # uiObj.setPixmap(QPixmap.fromImage(ImageQt(PIL_image)))
 
 def browse_folder(self):
     qWid = QWidget()

@@ -4,7 +4,7 @@ import numpy as np
 from req_classes.contour_processor import ContourProcessor, Seed
 from utils import *
 import csv
-from req_classes.dataAnalysis import BatchAnalysis
+from req_classes.dataAnalysis import BatchAnalysis, BatchAnalysisNew
 
 
 class Main_Processor:
@@ -20,6 +20,8 @@ class Main_Processor:
         self.hsv_values_seed_heads = 0,127,0,255,0,34     
         self.hsv_values_seed = 0,179,0,255,0,162
         self.batchNumber = 1
+        self.SeedObjList = []
+        self.batchAnalser = None
             
     def process_main(self, img_path):
         imageName = os.path.basename(img_path)
@@ -87,7 +89,7 @@ class Main_Processor:
         contourProcessor.get_skeleton_img()
 
         ################## Creating SEED object list ##################
-        SeedObjList = []
+        self.SeedObjList = []
         list_hypercotyl_radicle_lengths = []
         for i in range(len(xywh_list_final)):
             SeedObject = Seed(xywh=xywh_list_final[i], imgBinarySeed=hsvMask_seed, 
@@ -97,7 +99,7 @@ class Main_Processor:
                 thres_avg_max_radicle_thickness = self.thres_avg_max_radicle_thickness
                 )
 
-            SeedObjList.append(SeedObject)
+            self.SeedObjList.append(SeedObject)
             SeedObject.morph_head_img()
             SeedObject.skeletonize_root()
             # SeedObject.make_offset()
@@ -108,13 +110,16 @@ class Main_Processor:
 
         ######################### Batch analysis
 
-        batchAnalyser = BatchAnalysis(img_path=img_path, batchNumber=self.batchNumber, 
-                            list_hypercotyl_radicle_lengths=list_hypercotyl_radicle_lengths,
-                            dead_seed_max_length_r_h=self.dead_seed_max_length_r_h, abnormal_seed_max_length_r_h=self.abnormal_seed_max_length_r_h,
-                            normal_seed_max_length_r_h=self.normal_seed_max_length_r_h, weights_factor_growth_Pc=self.weights_factor_growth_Pc, 
-                            weights_factor_uniformity_Pu=self.weights_factor_uniformity_Pu)
+        # batchAnalyser = BatchAnalysis(img_path=img_path, batchNumber=self.batchNumber, 
+        #                     list_hypercotyl_radicle_lengths=list_hypercotyl_radicle_lengths,
+        #                     dead_seed_max_length_r_h=self.dead_seed_max_length_r_h, abnormal_seed_max_length_r_h=self.abnormal_seed_max_length_r_h,
+        #                     normal_seed_max_length_r_h=self.normal_seed_max_length_r_h, weights_factor_growth_Pc=self.weights_factor_growth_Pc, 
+        #                     weights_factor_uniformity_Pu=self.weights_factor_uniformity_Pu)
 
-        batch_seed_vigor_index = batchAnalyser.seed_vigor_index
+        self.batchAnalyser = BatchAnalysisNew(img_path=img_path, batchNumber=self.batchNumber, seedObjList=self.SeedObjList)
+
+
+        batch_seed_vigor_index = self.batchAnalyser.seed_vigor_index
 
 
         print()   
@@ -124,18 +129,18 @@ class Main_Processor:
         print("RESULT",list_hypercotyl_radicle_lengths)
         print("#"*50)
         print("*"*50)
-        print("Seed_vigor_index", batchAnalyser.seed_vigor_index)
-        print("Growth", batchAnalyser.growth)
-        print("Uniformity", batchAnalyser.uniformity)
-        print("Germinated_seed_count", batchAnalyser.germinated_seed_count)
-        print("Dead_seed_count", batchAnalyser.dead_seed_count)
-        print("Abnormal_seed_count", batchAnalyser.abnormal_seed_count)
+        print("Seed_vigor_index", self.batchAnalyser.seed_vigor_index)
+        print("Growth", self.batchAnalyser.growth)
+        print("Uniformity", self.batchAnalyser.uniformity)
+        print("Germinated_seed_count", self.batchAnalyser.germinated_seed_count)
+        print("Dead_seed_count", self.batchAnalyser.dead_seed_count)
+        print("Abnormal_seed_count", self.batchAnalyser.abnormal_seed_count)
         print("*"*50)
         print()
 
         # display_img("Result",contourProcessor.colorImg)
         # cv2.waitKey(-1)
-        return list_hypercotyl_radicle_lengths, contourProcessor.colorImg, batchAnalyser
+        return list_hypercotyl_radicle_lengths, contourProcessor.colorImg, self.batchAnalyser
         
 
     def getInputs():
