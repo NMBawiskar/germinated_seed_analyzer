@@ -242,10 +242,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.pixel_per_cm = get_pixel_to_cm(img)
 
             print("Pixels per centimeter is :", self.pixel_per_cm)
-            cv2.imshow('img', img)
+            # cv2.imshow('img', img)
             self.dict_settings['factor_pixel_to_cm'] = self.pixel_per_cm
             # cv2.waitKey(-1)
             print("self.dict_settings['factor_pixel_to_cm']", self.dict_settings['factor_pixel_to_cm'])
+            ut.showdialog(f"Calculated pixel per cm = {self.pixel_per_cm} \n Saved in settings. ")
             self.save_settings_to_file()
 
     def import_settings(self):
