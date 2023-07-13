@@ -3,6 +3,7 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import Qt
 import sys
 import utils_pyqt5 as ut
+from utils import check_if_point_lies_xywh_box
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QWidget, QFileDialog
 from main_processor import Main_Processor
@@ -37,11 +38,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.viewer = PhotoViewer(self)
         self.h_layout_img.addWidget(self.viewer)
+        self.viewer.mainUiObj = self
 
         self.new_screen_w = sizeObject.width()
         self.new_screen_h = sizeObject.height()
         
-          
+        
         # menubar = QtWidgets.QMenuBar()
         
         filemenu = self.menubar.addMenu('File')
@@ -73,6 +75,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.batchAnalyzerObjList = []
 
         self.currentImgIndex = 0
+        self.currentResultImg = None
 
         ################ Inputs
         self.n_segments_each_skeleton = 15           # divisions to make in each length (Increase this for finer results)
@@ -284,6 +287,18 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             ut.showdialog("Please select file to export settings.")
     
+
+
+    def show_seed_editor_window(self):
+        try:
+            self.window = self.seedEditorObj
+            self.window.show()
+            print("window shown")
+        except Exception as e:
+            print(traceback.format_exc())
+        
+
+
     def get_selected_row(self):
         index = self.tableView_res.selectedIndexes()[0]
         # id_us = int(self.tableView_res.model().data(index).toString())
@@ -295,19 +310,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.seedEditorObj.setSeedObj(seedObjSelected)
         seedIndex=index.row()
         self.seedEditorObj.setSeedIndex(seedIndex)
+        self.highlight_seed_with_rect(seedObjSelected)
         
-        # ut.show_cv2_img_on_label_obj(uiObj= self.seedEditorObj.label_img_seed ,img = seedObjSelected.cropped_seed_color)
-        # try:
-        #     self.seedEditorObj.update_values()
-        # except Exception as e:
-        #     print(traceback.format_exc())
-        try:
-            self.window = self.seedEditorObj
-            self.window.show()
-            print("window shown")
-        except Exception as e:
-            print(traceback.format_exc())
-        
+        self.show_seed_editor_window()
         
 
         # cv2.imshow(f"Seed {index.row()}",self.mainProcessor.SeedObjList[index.row()].cropped_seed_color)
@@ -463,7 +468,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.load_images()
         if len(self.imagePaths)>0:
             ## NOTE: uncomment this 
-            self.give_inputs()
+            # self.give_inputs()
 
             self.output_dir = os.path.join(self.input_folder_path, str(self.batchNo))
             self.output_results_dir = os.path.join(self.output_dir, 'results')
@@ -602,8 +607,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 pass
             output_img_path = os.path.join(self.output_images_dir, os.path.basename(self.imagePaths[self.currentImgIndex]))
             cv2.imwrite(output_img_path, colorImg)
-
-            self.showResultImg(colorImg)
+            self.currentResultImg = colorImg
+            self.showResultImg(self.currentResultImg)
             
         total_lengths = 0
         list_total_lengths = []
@@ -625,8 +630,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         
         self.avg_length = total_lengths / self.n_seeds
-        total_length_array = np.array(list_total_lengths)
-        
+        total_length_array = np.array(list_total_lengths)       
         
 
         self.show_analyzed_results()
@@ -698,6 +702,67 @@ class MainWindow(QtWidgets.QMainWindow):
     def close_win(self):
         self.close()
 
+
+    def highlight_seed_with_rect(self, seedobj):
+        x1,y1,w,h = seedobj.xywh
+        ### draw_bouding_rect 
+        colorImgCopy = self.currentResultImg.copy()
+        cv2.rectangle(colorImgCopy, (x1,y1), (x1+w,y1+h), (255,0,0), 15)
+        self.showResultImg(colorImgCopy)
+
+
+
+    def check_position_in_seed(self, mouse_loc):
+        # print('position in seed', mouse_loc)
+        x_mouse, y_mouse = mouse_loc
+
+        ## Recalculate correct position for image (pixmap scaled)..
+        windowH, windowW = self.viewer.height(), self.viewer.width()
+        # print("windowH, windowW",windowH, windowW)
+        if self.currentResultImg is not None:
+            imgSize = self.currentResultImg.shape
+            # print("imgSize", imgSize)
+            hImg, wImg = imgSize[:2]
+            if self.viewer.factor is not None:
+                scaleFactor = self.viewer.factor
+                resizedImgH, resizedImgW = int(hImg*scaleFactor), int(wImg * scaleFactor)
+                # print('resizedImgH, resizedImgW',resizedImgH, resizedImgW)
+                # transformedMousePos = [int(mouse_loc[0] / scaleFactor), int(mouse_loc[1]/scaleFactor)] 
+
+                diff_x = windowW - resizedImgW
+                diff_y = windowH - resizedImgH
+                dx_half = diff_x / 2
+                dy_half = diff_y / 2
+                # print('dx_half, dy_half ',dx_half, dy_half)
+
+                
+                x_in_img = x_mouse - dx_half
+                y_in_img = y_mouse - dy_half
+                # print("x_in_img, y_in_img",x_in_img, y_in_img)
+
+                transformedMousePos = [int(x_in_img/scaleFactor), int(y_in_img/scaleFactor)]
+                print("transformedMousePos", transformedMousePos)
+
+
+
+
+
+            for i, seedobj in enumerate(self.mainProcessor.SeedObjList):
+                # print(i, seedobj.xywh)
+                result_in = check_if_point_lies_xywh_box(transformedMousePos, seedobj.xywh)
+                if result_in:
+                    
+                    self.seedEditorObj.setSeedObj(seedobj)
+                    seedIndex= i +1
+                    self.seedEditorObj.setSeedIndex(seedIndex)
+                    # print('selected seed crop size',seedobj.xywh)
+
+                    self.highlight_seed_with_rect(seedobj)
+                    
+
+
+                    self.show_seed_editor_window()
+                    break
 
 class TableModel(QtCore.QAbstractTableModel):
     def __init__(self, data):

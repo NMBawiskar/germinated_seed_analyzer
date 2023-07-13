@@ -297,6 +297,12 @@ class SeedEditor(QWidget):
 
         self.imgH, self.imgW = self.seedObj.skeltonized.shape[:2]
         print(self.imgH, self.imgW)
+
+        if not self.imgH < 781 :
+            self.customLabel.h = 780
+        if not self.imgW < 301:
+            self.customLabel.w = 300
+        
         # self.label_paint_h = self.imgH
         # self.label_paint_w = self.imgW 
 

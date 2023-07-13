@@ -115,3 +115,12 @@ def find_closest_n_points(contour, point, no_points=2):
     sortedPoints = sorted(contour, key=lambda x:find_dist(x, point))
     
     return sortedPoints[:no_points]
+
+def check_if_point_lies_xywh_box(point, xywh_bbox):
+    x1,y1,w,h = xywh_bbox
+    x,y = point
+    if x >= x1 and x <= (x1+w):
+        if y >=y1 and y<= y1+h:
+            return True
+
+    return False
