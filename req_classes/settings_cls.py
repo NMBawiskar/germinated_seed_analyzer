@@ -25,6 +25,8 @@ class GlobalSettings(QWidget):
         self.spinBox_n_seg.setValue(self.mainUi.n_segments_each_skeleton)
         self.doubleSpinBox_pc.setValue(self.mainUi.weights_factor_growth_Pc)
         self.doubleSpinBox_pu.setValue(self.mainUi.weights_factor_uniformity_Pu)
+        self.doubleSpinBox_ph.setValue(self.mainUi.p_h)
+        self.doubleSpinBox_pr.setValue(self.mainUi.p_r)
 
     def apply_inputs(self):
 
@@ -56,6 +58,12 @@ class GlobalSettings(QWidget):
         self.mainUi.dict_settings['weights_factor_growth_Pc'] =self.doubleSpinBox_pc.value()    
         self.mainUi.weights_factor_uniformity_Pu = self.doubleSpinBox_pu.value()
         self.mainUi.dict_settings['weights_factor_uniformity_Pu'] = self.doubleSpinBox_pu.value()
+
+        self.mainUi.p_h = self.doubleSpinBox_ph.value()
+        self.mainUi.dict_settings['ph'] = self.doubleSpinBox_ph.value()
+
+        self.mainUi.p_r = self.doubleSpinBox_pr.value()
+        self.mainUi.dict_settings['pr'] = self.doubleSpinBox_pr.value()
         
         ### Call method to save values
         # print("self.mainUi.dead_seed_max_length_r_h",self.mainUi.dead_seed_max_length_r_h)

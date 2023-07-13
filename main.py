@@ -20,6 +20,7 @@ from req_classes.seedEditor import SeedEditor
 import cv2
 import json
 import traceback
+from PyQt5.QtWidgets import QApplication
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -88,6 +89,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.weights_factor_growth_Pc = 0.7
         self.weights_factor_uniformity_Pu = 0.3
+        self.p_h = 0.10
+        self.p_r = 0.90
 
         self.pixel_per_cm = 40
 
@@ -137,6 +140,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.normal_seed_max_length_r_h, self.n_segments_each_skeleton,
                     self.weights_factor_growth_Pc, self.weights_factor_uniformity_Pu]
         
+        self.seed_editor_window_shown=False
 
         self.dict_settings = {                            
                             "dead_seed_max_length": self.dead_seed_max_length_r_h, 
@@ -145,6 +149,8 @@ class MainWindow(QtWidgets.QMainWindow):
                             "no_of_segments_each_skeleton":self.n_segments_each_skeleton,
                             "weights_factor_growth_Pc":self.weights_factor_growth_Pc, 
                             "weights_factor_uniformity_Pu":self.weights_factor_uniformity_Pu,
+                            "ph" : self.p_h,
+                            "pr" : self.p_r,
                             "thresh_avg_max_radicle_thickness":self.thres_avg_max_radicle_thickness,
                             "average_seed_total_length":self.average_seed_total_length,
                             'hmin_head':self.hsv_values_seed_heads[0],
@@ -479,10 +485,15 @@ class MainWindow(QtWidgets.QMainWindow):
             os.makedirs(self.output_images_dir, exist_ok=True)
 
 
+            self.setCursor(Qt.CursorShape.BusyCursor)
             self.process_img_and_display_results()
             # self.showImg()
             # self.output_dir = self.input_folder_path
             # self.process_img_and_display_results()
+            imgNo = 1
+            total_images = len(self.imagePaths)
+            self.label_img_no.setText(f"{imgNo} / {total_images}")
+            self.setCursor(Qt.CursorShape.ArrowCursor)
         else:
             ut.showdialog("This folder does not contain any image file. Please choose another one..")
 
@@ -546,6 +557,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.model = TableModel(self.data_each_seed)
             self.model.columns=['Seedling', 'Hypocotyl (cm)', 'Root (cm)', 'Total (cm)', 'Hypocotyl/root ratio']
             self.tableView_res.setModel(self.model)
+            self.tableView_res.resizeColumnsToContents()
 
     def show_analyzed_results(self):
         batchAnalyserObj = self.batchAnalyzerObjList[self.currentImgIndex]
@@ -579,7 +591,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.label_germination.setText(f"{round(batchAnalyserObj.germination_percent,2)} %")
             self.label_avg_hypocotyl.setText(str(batchAnalyserObj.avg_hypocotyl_length))
             self.label_avg_root.setText(str(batchAnalyserObj.avg_root_length))
-            self.label_avg_total_length.setText(str(batchAnalyserObj.avg_total_length))
+            self.label_avg_total_length.setText(str(batchAnalyserObj.avg_total_length_calculated))
 
             self.model = TableModel(self.data_each_seed)
             self.model.columns=['Seedling', 'Hypocotyl', 'Root', 'Total', 'Hypocotyl/root ratio']
@@ -588,6 +600,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def process_img_and_display_results(self):
         
+        self.setCursor(Qt.CursorShape.BusyCursor)
         if self.check_if_all_valid_inputs():
 
             ## Process for main
@@ -637,6 +650,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
         self.save_results_to_csv()
+        # QApplication.restoreOverrideCursor()
+        self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def loadNextImg(self):
         if self.currentImgIndex<len(self.imagePaths)-1:
@@ -758,6 +773,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     # print('selected seed crop size',seedobj.xywh)
 
                     self.highlight_seed_with_rect(seedobj)
+                    self.tableView_res.selectRow(i)
                     
 
 

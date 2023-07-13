@@ -59,11 +59,14 @@ class BatchAnalysisNew:
         self.uniformity = 0
         self.seed_vigor_index = 0
 
-        self.avg_total_length = 0  # in cm
+        self.avg_total_length_settings = 0  # in pixels
+        self.avg_total_length_calculated = 0
         self.avg_hypocotyl_length = 0  # in cm
         self.avg_root_length = 0 # in cm
         self.std_deviation = 0
         self.germination_percent = 0
+
+        
 
         self.recalculate_all_metrics()
 
@@ -124,8 +127,8 @@ class BatchAnalysisNew:
             self.list_root_lengths.append(seedObj.radicle_length_cm)
 
         
-        # self.avg_total_length = round(sum(self.list_total_seed_lengths) /  len(self.seedObjList), 2)
-        self.avg_total_length = self.dict_settings['average_seed_total_length']
+        self.avg_total_length_calculated = round(sum(self.list_total_seed_lengths) /  len(self.seedObjList), 2)
+        self.avg_total_length_settings = self.dict_settings['average_seed_total_length']
         try:
 
             self.avg_hypocotyl_length = round(sum(self.list_hypocotyl_seed_lengths) /  len(self.seedObjList),2)
@@ -148,9 +151,9 @@ class BatchAnalysisNew:
         #     medianSeedLength = sortedList[centralIndex]
 
                
-        abs_sum = sum([abs(l_seed - self.avg_total_length) for l_seed in self.list_total_seed_lengths])
+        abs_sum = sum([abs(l_seed - self.avg_total_length_settings) for l_seed in self.list_total_seed_lengths])
 
-        uni_ = (1 -  (abs_sum / (self.n_total_seeds_in_image * self.avg_total_length))) * 1000 - self.penalization 
+        uni_ = (1 -  (abs_sum / (self.n_total_seeds_in_image * self.avg_total_length_settings))) * 1000 - self.penalization 
 
         self.uniformity = int(max(0, uni_))
 
@@ -158,8 +161,14 @@ class BatchAnalysisNew:
     def calculate_growth_or_Crescimento(self):
         """ growth (or Crescimento) = avg of seed lengths(rad+hyp) / max length * 1000
         """
-       
-        self.growth = self.avg_total_length / max(self.list_total_seed_lengths) * 1000
+        ## wrong formula before       
+        # self.growth = self.avg_total_length / max(self.list_total_seed_lengths) * 1000
+
+        self.ph_ = self.dict_settings['ph']
+        self.pr_ = self.dict_settings['pr']
+
+        self.growth = min(self.avg_root_length* self.pr_ + self.avg_hypocotyl_length *self.ph_, 1000)
+
 
         
     def calculate_seed_vigor_index(self):

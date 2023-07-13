@@ -260,6 +260,70 @@
       </property>
      </spacer>
     </item>
+    <item row="10" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_ph">
+      <property name="styleSheet">
+       <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <property name="minimum">
+       <double>0.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>1.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.050000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.100000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_pr">
+      <property name="styleSheet">
+       <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <property name="minimum">
+       <double>0.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>1.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.050000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.900000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="0">
+     <widget class="QLabel" name="label_12">
+      <property name="styleSheet">
+       <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+      </property>
+      <property name="text">
+       <string>Weight Factor Ph</string>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="0">
+     <widget class="QLabel" name="label_13">
+      <property name="styleSheet">
+       <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+      </property>
+      <property name="text">
+       <string>Weight Factor Pr</string>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QPushButton" name="btn_cancel">

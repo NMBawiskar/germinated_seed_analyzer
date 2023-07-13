@@ -30,7 +30,7 @@
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>10</y>
+      <y>0</y>
       <width>1181</width>
       <height>701</height>
      </rect>
@@ -289,9 +289,9 @@ border-radius:4;</string>
     <property name="geometry">
      <rect>
       <x>1280</x>
-      <y>260</y>
+      <y>250</y>
       <width>611</width>
-      <height>671</height>
+      <height>681</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -306,7 +306,7 @@ border-radius:4;</string>
       <x>410</x>
       <y>710</y>
       <width>481</width>
-      <height>61</height>
+      <height>51</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -315,9 +315,8 @@ border-radius:4;</string>
        <property name="styleSheet">
         <string notr="true">background-color:rgba(216, 229, 253,255);
 font: 63 10pt &quot;Segoe UI Semibold&quot;;
-color: rgb(64, 109, 255);
-border-radius:8;
-border:2px solid rgb(64, 109, 255);</string>
+color: rgb(32, 24, 255);
+border-radius:4;</string>
        </property>
        <property name="text">
         <string>&lt;</string>
@@ -342,9 +341,8 @@ border:2px solid rgb(64, 109, 255);</string>
        <property name="styleSheet">
         <string notr="true">background-color:rgba(216, 229, 253,255);
 font: 63 10pt &quot;Segoe UI Semibold&quot;;
-color: rgb(64, 109, 255);
-border-radius:8;
-border:2px solid rgb(64, 109, 255);</string>
+color: rgb(32, 24, 255);
+border-radius:4;</string>
        </property>
        <property name="text">
         <string>&gt;</string>
@@ -357,9 +355,9 @@ border:2px solid rgb(64, 109, 255);</string>
     <property name="geometry">
      <rect>
       <x>1280</x>
-      <y>120</y>
+      <y>110</y>
       <width>611</width>
-      <height>131</height>
+      <height>145</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_right">
@@ -527,7 +525,7 @@ border-radius:4;</string>
     <property name="geometry">
      <rect>
       <x>1370</x>
-      <y>10</y>
+      <y>0</y>
       <width>421</width>
       <height>91</height>
      </rect>

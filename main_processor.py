@@ -88,6 +88,10 @@ class Main_Processor:
         # display_img('drawnContours', result_cnt_drawn)
         contourProcessor.get_skeleton_img()
 
+        ### Sory xywh_list_final 
+
+        xywh_list_final = sort_xywh_l_to_r(xywh_list_final)
+
         ################## Creating SEED object list ##################
         self.SeedObjList = []
         list_hypercotyl_radicle_lengths = []
