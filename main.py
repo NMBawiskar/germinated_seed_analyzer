@@ -510,6 +510,21 @@ class MainWindow(QtWidgets.QMainWindow):
         
         return validated
 
+
+    def update_result_img(self):
+        imgPath = self.imagePaths[self.currentImgIndex]
+        updatedResImg = cv2.imread(imgPath)
+
+        if len(self.mainProcessor.SeedObjList)>0:
+            for seedObj in self.mainProcessor.SeedObjList:
+                x1, y1, w, h = seedObj.xywh
+                updatedResImg[y1:y1+h+1, x1:x1+w+1] = seedObj.cropped_seed_color
+
+        
+        self.showResultImg(updatedResImg)
+
+
+
     def save_results_to_csv(self):
         current_file_name = os.path.basename(self.imagePaths[self.currentImgIndex])
         print("saving results to ",current_file_name)

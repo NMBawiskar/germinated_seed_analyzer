@@ -349,4 +349,5 @@ class SeedEditor(QWidget):
         self.setColorPixmap()
 
         self.mainUi.show_analyzed_results()
+        self.mainUi.update_result_img()
     
