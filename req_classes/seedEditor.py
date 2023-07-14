@@ -92,7 +92,8 @@ class CanvasLabel(QLabel):
             # QApplication.setOverrideCursor(Qt.CursorShape.CrossCursor)
             ## Reload pixmap
             # Load skeletonized mask for editing
-            rgb_image = cv2.cvtColor(self.seedObj.skeltonized, cv2.COLOR_BGR2RGB)
+            # rgb_image = cv2.cvtColor(self.seedObj.skeltonized, cv2.COLOR_BGR2RGB)
+            rgb_image = cv2.cvtColor(self.seedObj.singlBranchBinaryImg, cv2.COLOR_BGR2RGB)
             imgPilMask = Image.fromarray(rgb_image).convert('RGB')        
             imMask = ImageQt(imgPilMask).copy()
             self.canvasMask= QtGui.QPixmap.fromImage(imMask)
@@ -216,6 +217,8 @@ class SeedEditor(QWidget):
 
         self.delta_x=390 
         self.delta_y=30
+
+        self.maxImgHt= 800
         # self.label_paint_w = 301  ## To set afterwards
         # self.label_paint_h = 781  ## To set afterwards
 
@@ -230,7 +233,7 @@ class SeedEditor(QWidget):
         print("saving changes")
         self.customLabel.canvasMask.save('customCanvas.png')
         imgUpdated = cv2.imread('customCanvas.png')
-        self.seedObj.skeltonized = imgUpdated
+        self.seedObj.singlBranchBinaryImg = imgUpdated
 
 
         self.mainUi.save_results_to_csv()
@@ -261,7 +264,7 @@ class SeedEditor(QWidget):
         self.pen_color_mask = QtGui.QColor('white')
 
     def display_mask(self):
-        cv2.imshow('mask_skeleton', self.seedObj.skeltonized)
+        cv2.imshow('mask_skeleton', self.seedObj.singlBranchBinaryImg)
         # cv2.imshow('mask_head', self.seedObj.cropped_head_binary)
         cv2.waitKey(1)
 
@@ -295,7 +298,7 @@ class SeedEditor(QWidget):
    
         self.update_values()
 
-        self.imgH, self.imgW = self.seedObj.skeltonized.shape[:2]
+        self.imgH, self.imgW = self.seedObj.singlBranchBinaryImg.shape[:2]
         print(self.imgH, self.imgW)
 
         if not self.imgH < 781 :
@@ -305,12 +308,15 @@ class SeedEditor(QWidget):
         
         # self.label_paint_h = self.imgH
         # self.label_paint_w = self.imgW 
+        if self.imgH > self.maxImgHt:
+            print("Image height is greater than max possible height.......")
+        else: 
+            self.customLabel.w = self.imgW
+            self.customLabel.h = self.imgH
 
-        self.customLabel.w = self.imgW
-        self.customLabel.h = self.imgH
         self.customLabel.seedObj = seedObj
         self.customLabel.setGeometry(self.customLabel.x, self.customLabel.y, self.customLabel.w, self.customLabel.h)
-        self.customLabel.apply_cv2_image(self.seedObj.skeltonized)
+        self.customLabel.apply_cv2_image(self.seedObj.singlBranchBinaryImg)
 
 
         self.label_img_seed_mask.setGeometry(self.delta_x, self.customLabel.y, self.customLabel.w, self.customLabel.h)

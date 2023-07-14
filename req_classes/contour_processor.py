@@ -91,6 +91,7 @@ class Seed():
         self.cropped_seed_binary = None
         self.imgBinarySeedWoHead = None
         self.skeltonized = None
+        self.singlBranchBinaryImg = None
 
         self.hyperCotyl_length_pixels = 0
         self.radicle_length_pixels = 0
@@ -192,6 +193,7 @@ class Seed():
                 thres_avg_max_radicle_thickness=self.thres_avg_max_radicle_thickness)
         skeletonAnayzer.get_line_endpoints_intersections()
         skeletonAnayzer.seperate_each_branch_of_skeleton()
+        self.singlBranchBinaryImg  = skeletonAnayzer.singlBranchImg
         
         self.hyperCotyl_length_pixels = skeletonAnayzer.hyperCotyl_length_pixels
         self.radicle_length_pixels = skeletonAnayzer.radicle_length_pixels
@@ -313,9 +315,9 @@ class Seed():
         imgCopy = cropImg(self.colorImgCopy, self.xywh).copy()
         # cv2.imshow('before corrected', imgCopy)
         for i, j in self.list_points_hypercotyl:
-            imgCopy[i,j] = (255,0,0)
-        for i, j in self.list_points_root:
             imgCopy[i,j] = (0,255,0)
+        for i, j in self.list_points_root:
+            imgCopy[i,j] = (255,0,0)
         
         # cv2.imshow('corrected', imgCopy)
         # cv2.waitKey(1)

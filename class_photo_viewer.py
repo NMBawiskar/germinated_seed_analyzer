@@ -1,4 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import Qt
 class mouseMove(QtWidgets.QGraphicsSceneEvent):
     def __init_subclass__(cls) -> None:
         return super().__init_subclass__()
@@ -89,10 +90,16 @@ class PhotoViewer(QtWidgets.QGraphicsView):
 
     def mousePressEvent(self, event):
         if self._photo.isUnderMouse():
-            self.photoClicked.emit(self.mapToScene(event.pos()).toPoint())
+            if event.button() == Qt.LeftButton:
+                self.photoClicked.emit(self.mapToScene(event.pos()).toPoint())
+            elif event.button() == Qt.RightButton:
+                print('right button clicked...',event.localPos().x(), event.localPos().y())
+                self.mainUiObj.check_position_in_seed([event.localPos().x(), event.localPos().y()])
+
+
         super(PhotoViewer, self).mousePressEvent(event)
 
-    def mouseMoveEvent(self, event) -> None:
-        print("Hover event", event.localPos().x(), event.localPos().y())
+    # def mouseMoveEvent(self, event) -> None:
+    #     print("Hover event", event.localPos().x(), event.localPos().y())
 
-        self.mainUiObj.check_position_in_seed([event.localPos().x(), event.localPos().y()])
+    #     self.mainUiObj.check_position_in_seed([event.localPos().x(), event.localPos().y()])
