@@ -10,6 +10,7 @@ from main_processor import Main_Processor
 import os
 import csv
 from req_classes.settings_cls import GlobalSettings
+from req_classes.setting_pixel_cm import CalibrationSettings
 from req_classes.setHSVclass import SetHSV
 from datetime import datetime
 import numpy as np
@@ -58,7 +59,7 @@ class MainWindow(QtWidgets.QMainWindow):
         menuConfig.addAction("Export Settings", self.export_settings)
         menuConfig.addAction('Change settings', self.change_settings)
         menuConfig.addAction("Set HSV values",self.set_hsv_values)
-        menuConfig.addAction("Set caliberation",self.set_pixel_cm_values)
+        menuConfig.addAction("Set calibration",self.set_pixel_cm_values)
         menuConfig.addAction("Restore Defaults",self.restore_default_settings)
 
 
@@ -240,23 +241,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # 1. upload image with square box printed over it
         # 2. extract square and 
-        qWid = QWidget()
-        print("Select measurements caliberation image")
-        filepath, _ = QFileDialog.getOpenFileName(qWid, 'Select measurements caliberation image','',"Image files (*.jpg)")
-        if not os.path.exists(filepath):
-            ut.showdialog("Please select a file")
-        else:
-            img = cv2.imread(filepath)
-            
-            self.pixel_per_cm = get_pixel_to_cm(img)
 
-            print("Pixels per centimeter is :", self.pixel_per_cm)
-            # cv2.imshow('img', img)
-            self.dict_settings['factor_pixel_to_cm'] = self.pixel_per_cm
-            # cv2.waitKey(-1)
-            print("self.dict_settings['factor_pixel_to_cm']", self.dict_settings['factor_pixel_to_cm'])
-            ut.showdialog(f"Calculated pixel per cm = {self.pixel_per_cm} \n Saved in settings. ")
-            self.save_settings_to_file()
+        self.window = CalibrationSettings(self)
+        self.window.show()
+        self.process_img_and_display_results()
 
     def import_settings(self):
         
@@ -355,27 +343,20 @@ class MainWindow(QtWidgets.QMainWindow):
             self.dict_settings = json.loads(data)
                 
 
-        # print('dict_values',dict_values)
+        self.n_segments_each_skeleton = self.dict_settings["no_of_segments_each_skeleton"]
+        self.thres_avg_max_radicle_thickness= self.dict_settings['thresh_avg_max_radicle_thickness']
+        
         self.dead_seed_max_length_r_h = self.dict_settings['dead_seed_max_length']
         self.abnormal_seed_max_length_r_h = self.dict_settings['abnormal_seed_max_length']
         self.normal_seed_max_length_r_h = self.dict_settings["normal_seed_max_length"]
-        self.n_segments_each_skeleton = self.dict_settings["no_of_segments_each_skeleton"]
+        self.average_seed_total_length = self.dict_settings['average_seed_total_length']
+
         self.weights_factor_growth_Pc = self.dict_settings["weights_factor_growth_Pc"]
         self.weights_factor_uniformity_Pu = self.dict_settings["weights_factor_uniformity_Pu"]
+        self.p_h = self.dict_settings['ph']
+        self.p_r = self.dict_settings['pr']
 
-        
-        # with open(self.settings_hsv_path, 'r') as f:
-        #     reader = csv.reader(f)
-            
-        #     for key, head_body,value in reader:
-                
-        #         if head_body=='head':
-        #             object_to_save = self.hsv_values_seed_heads
-        #         elif head_body=='body':
-        #             object_to_save = self.hsv_values_seed
-                
-        #         index_value = self.list_hsv_keys.index(key)
-        #         object_to_save[index_value] = int(value)
+      
         
         self.apply_new_hsv_values()
                        
@@ -402,7 +383,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.batchNo, done3 = inputDialog.getInt(
            self, 'Inputs', 'Enter Lot no:') 
         self.n_seeds, done4 = inputDialog.getInt(
-           self, 'Inputs',  'Enter no of seeds :', value=1, min=1)
+           self, 'Inputs',  'Enter no of seeds :', value=20, min=1)
         
         if self.n_seeds < 1:
             ut.showdialog("No of seeds cannot be less than 1. Please select proper value.")
@@ -421,15 +402,7 @@ class MainWindow(QtWidgets.QMainWindow):
     
         except Exception as e:
             print(e)
-        # with open(self.settings_file_path, 'a+', newline="") as f:
-        #     csvWriter = csv.writer(f)                    
-        #     print("self.dead_seed_max_length_r_h", self.dead_seed_max_length_r_h)
-        #     self.list_inputs = [self.dead_seed_max_length_r_h, self.abnormal_seed_max_length_r_h, 
-        #             self.normal_seed_max_length_r_h, self.n_segments_each_skeleton, 
-        #             self.weights_factor_growth_Pc, self.weights_factor_uniformity_Pu]
-        #     for i in range(len(self.list_inputs)):
-        #         list_each = [self.list_inputs_names[i], self.list_inputs[i]]
-        #         csvWriter.writerow(list_each)
+      
 
         with open(self.settings_json_file_path,'w+') as f:
             json.dump(self.dict_settings, f)
@@ -614,59 +587,59 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def process_img_and_display_results(self):
-        
-        self.setCursor(Qt.CursorShape.BusyCursor)
-        if self.check_if_all_valid_inputs():
+        if len(self.imagePaths)> 0:
+            self.setCursor(Qt.CursorShape.BusyCursor)
+            if self.check_if_all_valid_inputs():
 
-            ## Process for main
-            imgPath = self.imagePaths[self.currentImgIndex]
-            self.list_hypercotyl_radicle_lengths, colorImg, batchAnalyzerObj = self.mainProcessor.process_main(imgPath)
-            self.batchAnalyzerObjList[self.currentImgIndex] = batchAnalyzerObj
-
-
-            self.std_deviation = batchAnalyzerObj.std_deviation
-            self.growth = round(batchAnalyzerObj.growth,2)
+                ## Process for main
+                imgPath = self.imagePaths[self.currentImgIndex]
+                self.list_hypercotyl_radicle_lengths, colorImg, batchAnalyzerObj = self.mainProcessor.process_main(imgPath)
+                self.batchAnalyzerObjList[self.currentImgIndex] = batchAnalyzerObj
 
 
-            ## save output image
-            try:
-                os.makedirs(self.output_images_dir, exist_ok=True)
-            except Exception as e:
-                pass
-            output_img_path = os.path.join(self.output_images_dir, os.path.basename(self.imagePaths[self.currentImgIndex]))
-            cv2.imwrite(output_img_path, colorImg)
-            self.currentResultImg = colorImg
-            self.showResultImg(self.currentResultImg)
+                self.std_deviation = batchAnalyzerObj.std_deviation
+                self.growth = round(batchAnalyzerObj.growth,2)
+
+
+                ## save output image
+                try:
+                    os.makedirs(self.output_images_dir, exist_ok=True)
+                except Exception as e:
+                    pass
+                output_img_path = os.path.join(self.output_images_dir, os.path.basename(self.imagePaths[self.currentImgIndex]))
+                cv2.imwrite(output_img_path, colorImg)
+                self.currentResultImg = colorImg
+                self.showResultImg(self.currentResultImg)
+                
+            total_lengths = 0
+            list_total_lengths = []
+            self.data_each_seed = []
+
+            # for i in range(len(self.list_hypercotyl_radicle_lengths)):
+            #     hyp, rad = self.list_hypercotyl_radicle_lengths[i]
+            #     seed_length = hyp + rad
+            #     ratio_h_root = round(hyp/rad, 2) if rad>0 else 'NA'
+            #     line = [i+1, hyp, rad, seed_length,  ratio_h_root]
+
+            for i, seedObj in enumerate(batchAnalyzerObj.seedObjList):
+                line = [i+1, seedObj.hyperCotyl_length_cm, seedObj.radicle_length_cm, seedObj.total_length_cm, seedObj.ratio_h_root]
+                self.data_each_seed.append(line)
+
+                # writer.writerow(line)
+                total_lengths+= seedObj.total_length_pixels
+                list_total_lengths.append(seedObj.total_length_pixels)
             
-        total_lengths = 0
-        list_total_lengths = []
-        self.data_each_seed = []
+            
+            self.avg_length = total_lengths / self.n_seeds
+            total_length_array = np.array(list_total_lengths)       
+            
 
-        # for i in range(len(self.list_hypercotyl_radicle_lengths)):
-        #     hyp, rad = self.list_hypercotyl_radicle_lengths[i]
-        #     seed_length = hyp + rad
-        #     ratio_h_root = round(hyp/rad, 2) if rad>0 else 'NA'
-        #     line = [i+1, hyp, rad, seed_length,  ratio_h_root]
-
-        for i, seedObj in enumerate(batchAnalyzerObj.seedObjList):
-            line = [i+1, seedObj.hyperCotyl_length_cm, seedObj.radicle_length_cm, seedObj.total_length_cm, seedObj.ratio_h_root]
-            self.data_each_seed.append(line)
-
-            # writer.writerow(line)
-            total_lengths+= seedObj.total_length_pixels
-            list_total_lengths.append(seedObj.total_length_pixels)
-        
-        
-        self.avg_length = total_lengths / self.n_seeds
-        total_length_array = np.array(list_total_lengths)       
-        
-
-        self.show_analyzed_results()
+            self.show_analyzed_results()
 
 
-        self.save_results_to_csv()
-        # QApplication.restoreOverrideCursor()
-        self.setCursor(Qt.CursorShape.ArrowCursor)
+            self.save_results_to_csv()
+            # QApplication.restoreOverrideCursor()
+            self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def loadNextImg(self):
         if self.currentImgIndex<len(self.imagePaths)-1:

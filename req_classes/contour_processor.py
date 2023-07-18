@@ -185,7 +185,19 @@ class Seed():
         self.total_length_cm = round(self.total_length_pixels / self.factor_pixel_to_cm, 2)
         self.hyperCotyl_length_cm = round(self.hyperCotyl_length_pixels / self.factor_pixel_to_cm ,2)
         self.radicle_length_cm = round(self.radicle_length_pixels / self.factor_pixel_to_cm, 2)
+        self.ratio_h_root = round(self.hyperCotyl_length_cm/self.radicle_length_cm, 2) if self.radicle_length_cm>0 else 'NA'
         # print(f"hyperCotyl_length_cm , radicle_length_cm : {self.hyperCotyl_length_cm}, {self.radicle_length_cm}")
+        self.analyze_health()
+
+
+    def analyze_health(self):
+        if 'dead_seed_max_length' in self.dict_settings.keys():
+            if self.total_length_cm <= self.dict_settings['dead_seed_max_length']:
+                self.seed_health = SeedHealth.DEAD_SEED
+            elif self.total_length_cm <= self.dict_settings['abnormal_seed_max_length']:
+                self.seed_health = SeedHealth.ABNORMAL_SEED
+            else:
+                self.seed_health = SeedHealth.NORMAL_SEED
 
     def analyzeSkeleton(self):
         skeletonAnayzer = SkeltonizerContour(self.imgBinarySeedWoHead, colorImg = self.cropped_seed_color, 
@@ -200,13 +212,7 @@ class Seed():
         self.total_length_pixels = self.hyperCotyl_length_pixels + self.radicle_length_pixels
         self.ratio_h_root = round(self.hyperCotyl_length_pixels/self.radicle_length_pixels, 2) if self.radicle_length_pixels>0 else 'NA'
 
-        if 'dead_seed_max_length' in self.dict_settings.keys():
-            if self.total_length_pixels <= self.dict_settings['dead_seed_max_length']:
-                self.seed_health = SeedHealth.DEAD_SEED
-            elif self.total_length_pixels <= self.dict_settings['abnormal_seed_max_length']:
-                self.seed_health = SeedHealth.ABNORMAL_SEED
-            else:
-                self.seed_health = SeedHealth.NORMAL_SEED
+        self.analyze_health()
 
         self.sorted_point_list = skeletonAnayzer.sorted_points_list
         self.list_points_hypercotyl = skeletonAnayzer.list_hypercotyl_points
@@ -329,3 +335,4 @@ class Seed():
         self.ratio_h_root =  round(self.hyperCotyl_length_pixels/self.radicle_length_pixels, 2) if self.radicle_length_pixels>0 else 'NA'
 
         self.calculate_values_in_cm()
+        

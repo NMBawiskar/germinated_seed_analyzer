@@ -1,7 +1,7 @@
 "SEP=,"
 ProSeedling Software
 Cultivar,Lot number,Number of seeds,Analyst,Date
-,0,20,,14-07-23
+,0,20,,18-07-23
 
 Seedling,hypocotyl,root,Total length,hypocotyl/root ratio
 1,7.32,10.98,18.29,0.67
@@ -12,9 +12,9 @@ Seedling,hypocotyl,root,Total length,hypocotyl/root ratio
 6,4.76,9.51,14.27,0.5
 7,5.61,11.22,16.83,0.5
 8,2.1,13.63,15.73,0.15
-9,2.61,5.63,8.24,0.46
+9,6.44,5.63,12.07,1.14
 10,6.46,12.93,19.39,0.5
-11,0.68,9.56,10.24,0.07
+11,0.80,9.44,10.24,0.07
 12,6.34,12.68,19.02,0.5
 13,7.61,11.41,19.02,0.67
 14,6.59,13.17,19.76,0.5
@@ -22,8 +22,8 @@ Seedling,hypocotyl,root,Total length,hypocotyl/root ratio
 16,5.24,10.49,15.73,0.5
 17,5.17,14.22,19.39,0.36
 18,7.46,11.2,18.66,0.67
-19,0.98,7.32,8.29,0.13
+19,3.66,7.32,10.98,0.5
 20,6.29,9.44,15.73,0.67
 
 Vigor Index,Growth,Uniformity,Germination,Average length,Standard deviation,Normal Seedlings,Abnormal Seedlings,Non germinated seeds
-17.1,10.72,32,100.0 %,662.25,3.37,20,0,0
+7.5,10.72,0,0.0 %,662.25,3.37,0,0,20

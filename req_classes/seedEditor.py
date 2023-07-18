@@ -205,7 +205,7 @@ class SeedEditor(QWidget):
         self.btnEraser.clicked.connect(self.use_eraser)
         self.btnPoint.clicked.connect(self.use_breakPoint)
         # self.btnPen.clicked.connect(self.use_pen)
-        self.btnSave.clicked.connect(self.save_changes)
+        # self.btnSave.clicked.connect(self.save_changes)
 
         self.canvasMask_seededitor=None
         self.last_x, self.last_y = None, None
@@ -226,17 +226,35 @@ class SeedEditor(QWidget):
         self.customLabel.setObjectName("img_label_mask")
         self.customLabel.seedEditor = self
         # self.customLabel.show()
-       
-        
+        self.btnClickedStylesheet = '''background-color:rgba(216, 229, 253,50);
+                        font: 63 10pt "Segoe UI Semibold";
+                        color: rgb(32, 24, 255);
+                        border-radius:4;'''
+        self.btnNotClickedStylesheet = '''background-color:rgba(216, 229, 253,255);
+                        font: 63 10pt "Segoe UI Semibold";
+                        color: rgb(32, 24, 255);
+                        border-radius:4;'''   
+
+        self.lineEdit_hypocotyl_length.textChanged.connect(self.change_value_hypocotyl)
+        self.lineEdit_root_length.textChanged.connect(self.change_value_root)
 
     def save_changes(self):
         print("saving changes")
         self.customLabel.canvasMask.save('customCanvas.png')
         imgUpdated = cv2.imread('customCanvas.png')
         self.seedObj.singlBranchBinaryImg = imgUpdated
-
+        print("self.lineEdit_hypocotyl_length.text()", self.lineEdit_hypocotyl_length.text(), self.lineEdit_hypocotyl_length.text().isdecimal())
+        if len(self.lineEdit_hypocotyl_length.text())>0:
+            self.seedObj.hyperCotyl_length_cm = self.lineEdit_hypocotyl_length.text()
+            print("saving value self.seedObj.hyperCotyl_length_cm", self.seedObj.hyperCotyl_length_cm)
+        
+        if len(self.lineEdit_root_length.text())>0:
+            self.seedObj.radicle_length_cm = self.lineEdit_root_length.text()
+            print("saving value self.seedObj.radicle_length_cm", self.seedObj.radicle_length_cm)
 
         self.mainUi.save_results_to_csv()
+        self.mainUi.show_analyzed_results()
+        self.mainUi.update_result_img()
         # cv2.imshow('updatedQIMG',self.seedObj.skeltonized)
         # cv2.imshow('self.customLabel.updated_img',self.customLabel.updated_img)
         # cv2.waitKey(1)
@@ -249,15 +267,21 @@ class SeedEditor(QWidget):
         self.breakPointActive=False
         self.customLabel.breakPointActive=False
         self.customLabel.eraserActive=True
+
+        self.btnEraser.setStyleSheet(self.btnClickedStylesheet)
+        self.btnPoint.setStyleSheet(self.btnNotClickedStylesheet)
     
     def use_breakPoint(self):
         print("Breakpoint clicked")
         # self.pen_color_mask = QtGui.QColor('black')
         self.eraserActive=False
         self.breakPointActive=True
-        print(f"Initial hyperCotyl_length_pixels , radicle_length_pixels : {self.seedObj.hyperCotyl_length_pixels}, {self.seedObj.radicle_length_pixels}")
+        print(f"Initial hyperCotyl_length_pixels , radicle_length_pixels : {self.seedObj.hyperCotyl_length_cm}, {self.seedObj.radicle_length_cm}")
         self.customLabel.breakPointActive=True
         self.customLabel.eraserActive=False
+
+        self.btnEraser.setStyleSheet(self.btnNotClickedStylesheet)
+        self.btnPoint.setStyleSheet(self.btnClickedStylesheet)
 
     def use_pen(self):
         print("Pen clicked")
@@ -341,9 +365,14 @@ class SeedEditor(QWidget):
     def update_values(self):
         
         self.label_seed_no.setText(str(self.seedNo))
-        self.label_hypocotyl_length.setText(str(self.seedObj.hyperCotyl_length_pixels))
-        self.label_root_length.setText(str(self.seedObj.radicle_length_pixels))
-        self.label_total_length.setText(str(self.seedObj.total_length_pixels))
+        self.label_hypocotyl_length.setText(str(self.seedObj.hyperCotyl_length_cm))
+        self.label_root_length.setText(str(self.seedObj.radicle_length_cm))
+        
+        self.lineEdit_hypocotyl_length.setText(str(self.seedObj.hyperCotyl_length_cm))
+        self.lineEdit_root_length.setText(str(self.seedObj.radicle_length_cm))
+
+
+        self.label_total_length.setText(str(self.seedObj.total_length_cm))
         self.label_seed_health.setText(self.seedObj.seed_health)
 
         self.setColorPixmap()
@@ -351,3 +380,33 @@ class SeedEditor(QWidget):
         self.mainUi.show_analyzed_results()
         self.mainUi.update_result_img()
     
+    def change_value_hypocotyl(self):
+        
+        try:
+            new_value_hypocotyl = float(str(self.lineEdit_hypocotyl_length.text()))
+            self.seedObj.hyperCotyl_length_cm = round(new_value_hypocotyl,2)
+            self.seedObj.radicle_length_cm =  round(self.seedObj.total_length_cm - new_value_hypocotyl,2)          
+
+            self.lineEdit_root_length.setText(str(self.seedObj.radicle_length_cm))
+        except Exception as e:
+            print(e)
+        
+    def change_value_root(self):
+        try:
+            new_value_root = float(str(self.lineEdit_root_length.text()))
+            self.seedObj.radicle_length_cm = round(new_value_root,2)
+            self.seedObj.hyperCotyl_length_cm =  round(self.seedObj.total_length_cm - new_value_root, 2)          
+
+            self.lineEdit_hypocotyl_length.setText(str(self.seedObj.hyperCotyl_length_cm))
+
+        except Exception as e:
+            print(e)
+
+    def closeEvent(self, event):
+        # Perform your desired actions here
+        print("Window is being closed...")
+        self.save_changes()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:  # Check if the pressed key is the Escape key
+            self.save_changes()

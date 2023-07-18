@@ -69,6 +69,7 @@ class GlobalSettings(QWidget):
         # print("self.mainUi.dead_seed_max_length_r_h",self.mainUi.dead_seed_max_length_r_h)
         self.mainUi.save_settings_to_file()
         showdialog("Settings saved successfully!!!")
+        self.mainUi.process_img_and_display_results()
         self.close_window()
 
     
