@@ -235,22 +235,22 @@ class SeedEditor(QWidget):
                         color: rgb(32, 24, 255);
                         border-radius:4;'''   
 
-        self.lineEdit_hypocotyl_length.textChanged.connect(self.change_value_hypocotyl)
-        self.lineEdit_root_length.textChanged.connect(self.change_value_root)
+        # self.lineEdit_hypocotyl_length.textChanged.connect(self.change_value_hypocotyl)
+        # self.lineEdit_root_length.textChanged.connect(self.change_value_root)
 
     def save_changes(self):
         print("saving changes")
         self.customLabel.canvasMask.save('customCanvas.png')
         imgUpdated = cv2.imread('customCanvas.png')
         self.seedObj.singlBranchBinaryImg = imgUpdated
-        print("self.lineEdit_hypocotyl_length.text()", self.lineEdit_hypocotyl_length.text(), self.lineEdit_hypocotyl_length.text().isdecimal())
-        if len(self.lineEdit_hypocotyl_length.text())>0:
-            self.seedObj.hyperCotyl_length_cm = self.lineEdit_hypocotyl_length.text()
-            print("saving value self.seedObj.hyperCotyl_length_cm", self.seedObj.hyperCotyl_length_cm)
+        # print("self.lineEdit_hypocotyl_length.text()", self.lineEdit_hypocotyl_length.text(), self.lineEdit_hypocotyl_length.text().isdecimal())
+        # if len(self.lineEdit_hypocotyl_length.text())>0:
+        #     self.seedObj.hyperCotyl_length_cm = self.lineEdit_hypocotyl_length.text()
+        #     print("saving value self.seedObj.hyperCotyl_length_cm", self.seedObj.hyperCotyl_length_cm)
         
-        if len(self.lineEdit_root_length.text())>0:
-            self.seedObj.radicle_length_cm = self.lineEdit_root_length.text()
-            print("saving value self.seedObj.radicle_length_cm", self.seedObj.radicle_length_cm)
+        # if len(self.lineEdit_root_length.text())>0:
+        #     self.seedObj.radicle_length_cm = self.lineEdit_root_length.text()
+        #     print("saving value self.seedObj.radicle_length_cm", self.seedObj.radicle_length_cm)
 
         self.mainUi.save_results_to_csv()
         self.mainUi.show_analyzed_results()
@@ -368,8 +368,8 @@ class SeedEditor(QWidget):
         self.label_hypocotyl_length.setText(str(self.seedObj.hyperCotyl_length_cm))
         self.label_root_length.setText(str(self.seedObj.radicle_length_cm))
         
-        self.lineEdit_hypocotyl_length.setText(str(self.seedObj.hyperCotyl_length_cm))
-        self.lineEdit_root_length.setText(str(self.seedObj.radicle_length_cm))
+        # self.lineEdit_hypocotyl_length.setText(str(self.seedObj.hyperCotyl_length_cm))
+        # self.lineEdit_root_length.setText(str(self.seedObj.radicle_length_cm))
 
 
         self.label_total_length.setText(str(self.seedObj.total_length_cm))
@@ -383,22 +383,22 @@ class SeedEditor(QWidget):
     def change_value_hypocotyl(self):
         
         try:
-            new_value_hypocotyl = float(str(self.lineEdit_hypocotyl_length.text()))
-            self.seedObj.hyperCotyl_length_cm = round(new_value_hypocotyl,2)
-            self.seedObj.radicle_length_cm =  round(self.seedObj.total_length_cm - new_value_hypocotyl,2)          
-
-            self.lineEdit_root_length.setText(str(self.seedObj.radicle_length_cm))
+            # new_value_hypocotyl = float(str(self.lineEdit_hypocotyl_length.text()))
+            # self.seedObj.hyperCotyl_length_cm = round(new_value_hypocotyl,2)
+            # self.seedObj.radicle_length_cm =  round(self.seedObj.total_length_cm - new_value_hypocotyl,2)          
+            pass
+            # self.lineEdit_root_length.setText(str(self.seedObj.radicle_length_cm))
         except Exception as e:
             print(e)
         
     def change_value_root(self):
         try:
-            new_value_root = float(str(self.lineEdit_root_length.text()))
-            self.seedObj.radicle_length_cm = round(new_value_root,2)
-            self.seedObj.hyperCotyl_length_cm =  round(self.seedObj.total_length_cm - new_value_root, 2)          
+            # new_value_root = float(str(self.lineEdit_root_length.text()))
+            # self.seedObj.radicle_length_cm = round(new_value_root,2)
+            # self.seedObj.hyperCotyl_length_cm =  round(self.seedObj.total_length_cm - new_value_root, 2)          
 
-            self.lineEdit_hypocotyl_length.setText(str(self.seedObj.hyperCotyl_length_cm))
-
+            # self.lineEdit_hypocotyl_length.setText(str(self.seedObj.hyperCotyl_length_cm))
+            pass
         except Exception as e:
             print(e)
 

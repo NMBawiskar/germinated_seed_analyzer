@@ -187,43 +187,25 @@ color:white;</string>
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="lineEdit_hypocotyl_length">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>40</height>
-       </size>
-      </property>
+    <item row="2" column="1">
+     <widget class="QLabel" name="label_root_length">
       <property name="styleSheet">
-       <string notr="true">font: 63 10pt &quot;Segoe UI Semibold&quot;;
+       <string>font: 63 10pt &quot;Segoe UI Semibold&quot;;
 color:white;</string>
       </property>
-      <property name="inputMethodHints">
-       <set>Qt::ImhDigitsOnly</set>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
+      <property name="text">
+       <string/>
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="lineEdit_root_length">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>40</height>
-       </size>
-      </property>
+    <item row="1" column="1">
+     <widget class="QLabel" name="label_hypocotyl_length">
       <property name="styleSheet">
-       <string notr="true">font: 63 10pt &quot;Segoe UI Semibold&quot;;
+       <string>font: 63 10pt &quot;Segoe UI Semibold&quot;;
 color:white;</string>
       </property>
-      <property name="inputMethodHints">
-       <set>Qt::ImhDigitsOnly</set>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
+      <property name="text">
+       <string/>
       </property>
      </widget>
     </item>
@@ -284,40 +266,6 @@ border-radius:4;</string>
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QLabel" name="label_hypocotyl_length">
-   <property name="geometry">
-    <rect>
-     <x>850</x>
-     <y>310</y>
-     <width>176</width>
-     <height>34</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string>font: 63 10pt &quot;Segoe UI Semibold&quot;;
-color:white;</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_root_length">
-   <property name="geometry">
-    <rect>
-     <x>850</x>
-     <y>350</y>
-     <width>176</width>
-     <height>35</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string>font: 63 10pt &quot;Segoe UI Semibold&quot;;
-color:white;</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
   <zorder>groupBox</zorder>
   <zorder>btnEraser</zorder>
   <zorder>radioBtnNormalSeed</zorder>
@@ -326,8 +274,6 @@ color:white;</string>
   <zorder>gridLayoutWidget</zorder>
   <zorder>btnPoint</zorder>
   <zorder>label_img_seed_mask</zorder>
-  <zorder>label_hypocotyl_length</zorder>
-  <zorder>label_root_length</zorder>
  </widget>
  <resources/>
  <connections/>

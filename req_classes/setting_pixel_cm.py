@@ -18,6 +18,7 @@ class CalibrationSettings(QWidget):
         self.lineEdit_pixel_cm.setText(str(self.mainUi.dict_settings['factor_pixel_to_cm']))
         self.btn_load_calib_img.clicked.connect(self.load_calib_image)
         self.btnSave.clicked.connect(self.saveSetting)
+        self.checkerboard_size = (28,20)
 
 
     def load_calib_image(self):
@@ -30,19 +31,24 @@ class CalibrationSettings(QWidget):
         else:
             img = cv2.imread(filepath)
             
-            self.mainUi.pixel_per_cm = get_pixel_to_cm(img)
+            result_pixel_per_cm = get_pixel_to_cm(img, self.checkerboard_size)
+            if result_pixel_per_cm is not None:
+                self.mainUi.pixel_per_cm = result_pixel_per_cm
 
-            print("Pixels per centimeter is :", self.mainUi.pixel_per_cm)
-            # cv2.imshow('img', img)
-            self.mainUi.dict_settings['factor_pixel_to_cm'] = self.mainUi.pixel_per_cm
-            # cv2.waitKey(-1)
-            print("self.dict_settings['factor_pixel_to_cm']", self.mainUi.dict_settings['factor_pixel_to_cm'])
-            self.lineEdit_pixel_cm.setText(str(self.mainUi.dict_settings['factor_pixel_to_cm']))
+                print("Pixels per centimeter is :", self.mainUi.pixel_per_cm)
+                # cv2.imshow('img', img)
+                self.mainUi.dict_settings['factor_pixel_to_cm'] = self.mainUi.pixel_per_cm
+                # cv2.waitKey(-1)
+                print("self.dict_settings['factor_pixel_to_cm']", self.mainUi.dict_settings['factor_pixel_to_cm'])
+                self.lineEdit_pixel_cm.setText(str(self.mainUi.dict_settings['factor_pixel_to_cm']))
 
-            ut.showdialog(f"Calibration done! \n {self.mainUi.pixel_per_cm} pixel = 1 cm. ")
-            self.mainUi.save_settings_to_file()
-            self.mainUi.process_img_and_display_results()
-            self.close()
+                ut.showdialog(f"Calibration done! \n {self.mainUi.pixel_per_cm} pixel = 1 cm. ")
+                self.mainUi.save_settings_to_file()
+                self.mainUi.process_img_and_display_results()
+                self.close()
+            else:
+                ut.showdialog(f"Calibration not done! \n Image could not be processed.")
+                
 
     def saveSetting(self):
         if len(self.lineEdit_pixel_cm.text())>0 and self.lineEdit_pixel_cm.text().isnumeric():

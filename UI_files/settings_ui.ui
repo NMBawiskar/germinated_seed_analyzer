@@ -48,7 +48,7 @@
        <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
       </property>
       <property name="text">
-       <string>Average root thickness</string>
+       <string>Average root thickness (pixels)</string>
       </property>
      </widget>
     </item>
@@ -58,7 +58,7 @@
        <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
       </property>
       <property name="text">
-       <string>Max dead seed length</string>
+       <string>Max dead seed length (cm)</string>
       </property>
      </widget>
     </item>
@@ -81,7 +81,7 @@
        <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
       </property>
       <property name="text">
-       <string>Abnormal seed max length</string>
+       <string>Abnormal seed max length (cm)</string>
       </property>
      </widget>
     </item>
@@ -104,7 +104,7 @@
        <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
       </property>
       <property name="text">
-       <string>Normal seed max length</string>
+       <string>Normal seed max length (cm)</string>
       </property>
      </widget>
     </item>
@@ -127,7 +127,7 @@
        <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
       </property>
       <property name="text">
-       <string>Average seedling length</string>
+       <string>Average seedling length (cm)</string>
       </property>
      </widget>
     </item>

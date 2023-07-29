@@ -82,10 +82,10 @@ class MainWindow(QtWidgets.QMainWindow):
         ################ Inputs
         self.n_segments_each_skeleton = 15           # divisions to make in each length (Increase this for finer results)
         self.thres_avg_max_radicle_thickness = 13    # avg thickness to distinguish radicle (tune this if camera position changes)
-        self.dead_seed_max_length_r_h = 80
-        self.abnormal_seed_max_length_r_h =  130
-        self.normal_seed_max_length_r_h = 150
-        self.average_seed_total_length = 500
+        self.dead_seed_max_length_r_h = 2.0
+        self.abnormal_seed_max_length_r_h =  3.25
+        self.normal_seed_max_length_r_h = 3.75
+        self.user_given_seedling_length = 12.5
         self.list_hypercotyl_radicle_lengths = []
 
         self.weights_factor_growth_Pc = 0.7
@@ -133,10 +133,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings_json_file_path =  os.path.join(self.settings_dir, "settings.json")
         # self.settings_hsv_path = os.path.join(self.settings_dir, "settings_hsv.csv")
 
-        self.mainProcessor = Main_Processor()
-        self.mainProcessor.hsv_values_seed = self.hsv_values_seed
-        self.mainProcessor.hsv_values_seed_heads = self.hsv_values_seed_heads
-
         self.list_inputs = [self.dead_seed_max_length_r_h, self.abnormal_seed_max_length_r_h, 
                     self.normal_seed_max_length_r_h, self.n_segments_each_skeleton,
                     self.weights_factor_growth_Pc, self.weights_factor_uniformity_Pu]
@@ -153,7 +149,7 @@ class MainWindow(QtWidgets.QMainWindow):
                             "ph" : self.p_h,
                             "pr" : self.p_r,
                             "thresh_avg_max_radicle_thickness":self.thres_avg_max_radicle_thickness,
-                            "average_seed_total_length":self.average_seed_total_length,
+                            "user_given_seedling_length":self.user_given_seedling_length,
                             'hmin_head':self.hsv_values_seed_heads[0],
                             'hmax_head':self.hsv_values_seed_heads[1],
                             'smin_head':self.hsv_values_seed_heads[2],
@@ -170,20 +166,24 @@ class MainWindow(QtWidgets.QMainWindow):
                             
                             }
 
-        self.list_inputs_names = ["dead_seed_max_length", "abnormal_seed_max_length", 
-                    "normal_seed_max_length", "no_of_segments_each_skeleton", 
-                    "weights_factor_growth_Pc", "weights_factor_uniformity_Pu"]
-
 
         self.list_hsv_keys = ['hmin','hmax','smin','smax','vmin','vmax',]
         list_dir = [self.settings_dir, self.output_dir]
         self.create_dirs(list_dir)
         self.create_settings_if_not_present()
+
+        self.list_inputs_names = ["dead_seed_max_length", "abnormal_seed_max_length", 
+                    "normal_seed_max_length", "no_of_segments_each_skeleton", 
+                    "weights_factor_growth_Pc", "weights_factor_uniformity_Pu"]
+
+        
+        self.mainProcessor = Main_Processor(mainUi=self)
+        self.mainProcessor.hsv_values_seed = self.hsv_values_seed
+        self.mainProcessor.hsv_values_seed_heads = self.hsv_values_seed_heads
+        self.mainProcessor.dict_settings = self.dict_settings
+
         self.read_settings()
-        # customCursor = QtGui.QPixmap((32,32))
-        # # customCursor.fill()
-
-
+       
         # self.setCursor()
 
         imgLogo = cv2.imread('resources/ProSeedling_logo_cropped.png')
@@ -195,14 +195,16 @@ class MainWindow(QtWidgets.QMainWindow):
         ################ Inputs
         self.n_segments_each_skeleton = 15           # divisions to make in each length (Increase this for finer results)
         self.thres_avg_max_radicle_thickness = 13    # avg thickness to distinguish radicle (tune this if camera position changes)
-        self.dead_seed_max_length_r_h = 80
-        self.abnormal_seed_max_length_r_h =  130
-        self.normal_seed_max_length_r_h = 150
-        self.average_seed_total_length = 500
+        self.dead_seed_max_length_r_h = 2.0
+        self.abnormal_seed_max_length_r_h =  3.25
+        self.normal_seed_max_length_r_h = 3.75
+        self.user_given_seedling_length = 12.5
         self.list_hypercotyl_radicle_lengths = []
 
         self.weights_factor_growth_Pc = 0.7
         self.weights_factor_uniformity_Pu = 0.3
+        self.p_h = 0.10
+        self.p_r = 0.90
 
         self.pixel_per_cm = 40
 
@@ -216,7 +218,7 @@ class MainWindow(QtWidgets.QMainWindow):
                             "weights_factor_growth_Pc":self.weights_factor_growth_Pc, 
                             "weights_factor_uniformity_Pu":self.weights_factor_uniformity_Pu,
                             "thresh_avg_max_radicle_thickness":self.thres_avg_max_radicle_thickness,
-                            "average_seed_total_length":self.average_seed_total_length,
+                            "user_given_seedling_length":self.user_given_seedling_length,
                             'hmin_head':self.hsv_values_seed_heads[0],
                             'hmax_head':self.hsv_values_seed_heads[1],
                             'smin_head':self.hsv_values_seed_heads[2],
@@ -229,12 +231,15 @@ class MainWindow(QtWidgets.QMainWindow):
                             'smax_body':self.hsv_values_seed[3],
                             'vmin_body':self.hsv_values_seed[4],
                             'vmax_body':self.hsv_values_seed[5],
-                            'factor_pixel_to_cm':self.pixel_per_cm
+                            'factor_pixel_to_cm':self.pixel_per_cm,
+                            "ph" : self.p_h,
+                            "pr" : self.p_r,
                             
                             }
 
         self.save_settings_to_file()
         ut.showdialog("Default settings restored successfully!!!")
+        self.process_img_and_display_results()
 
     def set_pixel_cm_values(self):
         """Function to upload caliberation image"""
@@ -349,14 +354,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.dead_seed_max_length_r_h = self.dict_settings['dead_seed_max_length']
         self.abnormal_seed_max_length_r_h = self.dict_settings['abnormal_seed_max_length']
         self.normal_seed_max_length_r_h = self.dict_settings["normal_seed_max_length"]
-        self.average_seed_total_length = self.dict_settings['average_seed_total_length']
+        self.user_given_seedling_length = self.dict_settings['user_given_seedling_length']
 
         self.weights_factor_growth_Pc = self.dict_settings["weights_factor_growth_Pc"]
         self.weights_factor_uniformity_Pu = self.dict_settings["weights_factor_uniformity_Pu"]
         self.p_h = self.dict_settings['ph']
         self.p_r = self.dict_settings['pr']
-
-      
+     
         
         self.apply_new_hsv_values()
                        
@@ -446,8 +450,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.input_folder_path = QFileDialog.getExistingDirectory(qWid, 'Select folder', '')
         self.load_images()
         if len(self.imagePaths)>0:
-            ## NOTE: uncomment this 
-            # self.give_inputs()
+            
+            self.give_inputs()
 
             self.output_dir = os.path.join(self.input_folder_path, str(self.batchNo))
             self.output_results_dir = os.path.join(self.output_dir, 'results')
@@ -560,12 +564,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 # list_total_lengths.append(seedObj.total_length_pixels)
             
             self.std_deviation = batchAnalyserObj.std_deviation
-            self.growth = round(batchAnalyserObj.growth,2)
+            self.growth = int(batchAnalyserObj.growth)
 
            
             self.penalization = round(batchAnalyserObj.penalization,2)
-            self.uniformity = round(batchAnalyserObj.uniformity,2)
-            self.seed_vigor_index = round(batchAnalyserObj.seed_vigor_index,2)
+            self.uniformity = int(batchAnalyserObj.uniformity)
+            self.seed_vigor_index = int(batchAnalyserObj.seed_vigor_index)
 
             self.count_abnormal_seeds = batchAnalyserObj.abnormal_seed_count
             self.count_dead_seeds = batchAnalyserObj.dead_seed_count
@@ -577,9 +581,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.label_uniformity.setText(str(self.uniformity))
             self.label_seedvigor.setText(str(self.seed_vigor_index))
             self.label_germination.setText(f"{round(batchAnalyserObj.germination_percent,2)} %")
-            self.label_avg_hypocotyl.setText(str(batchAnalyserObj.avg_hypocotyl_length))
-            self.label_avg_root.setText(str(batchAnalyserObj.avg_root_length))
-            self.label_avg_total_length.setText(str(batchAnalyserObj.avg_total_length_calculated))
+            self.label_avg_hypocotyl.setText(str(batchAnalyserObj.avg_hypocotyl_length_cm))
+            self.label_avg_root.setText(str(batchAnalyserObj.avg_root_length_cm))
+            self.label_avg_total_length.setText(str(batchAnalyserObj.avg_total_length_cm))
 
             self.model = TableModel(self.data_each_seed)
             self.model.columns=['Seedling', 'Hypocotyl', 'Root', 'Total', 'Hypocotyl/root ratio']
