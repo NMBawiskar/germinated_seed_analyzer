@@ -493,12 +493,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def update_result_img(self):
         imgPath = self.imagePaths[self.currentImgIndex]
         updatedResImg = cv2.imread(imgPath)
-
         if len(self.mainProcessor.SeedObjList)>0:
             for seedObj in self.mainProcessor.SeedObjList:
                 x1, y1, w, h = seedObj.xywh
                 updatedResImg[y1:y1+h+1, x1:x1+w+1] = seedObj.cropped_seed_color
 
+        updatedResImg = cv2.cvtColor(updatedResImg, cv2.COLOR_BGR2RGB)
         
         self.showResultImg(updatedResImg)
 
@@ -614,7 +614,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     pass
                 output_img_path = os.path.join(self.output_images_dir, os.path.basename(self.imagePaths[self.currentImgIndex]))
                 cv2.imwrite(output_img_path, colorImg)
-                self.currentResultImg = colorImg
+                self.currentResultImg = cv2.cvtColor(colorImg, cv2.COLOR_BGR2RGB)
                 self.showResultImg(self.currentResultImg)
                 
             total_lengths = 0
@@ -717,6 +717,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ### draw_bouding_rect 
         colorImgCopy = self.currentResultImg.copy()
         cv2.rectangle(colorImgCopy, (x1,y1), (x1+w,y1+h), (255,0,0), 15)
+        colorImgCopy = cv2.cvtColor(colorImgCopy, cv2.COLOR_BGR2RGB)
         self.showResultImg(colorImgCopy)
 
 

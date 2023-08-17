@@ -319,24 +319,17 @@ class Seed():
         self.calculate_values_in_cm()
 
     def erase_points(self, point):
-        # print('erase points',point)
-        # print('self.list_points_hypercotyl',self.list_points_hypercotyl)
-        if point in self.list_points_hypercotyl:
-            # print("point found hypercotyl", point)
+       
+        if point in self.list_points_hypercotyl:            
             self.list_points_hypercotyl.remove(point)
-            # print("len(self.list_points_hypercotyl)",len(self.list_points_hypercotyl))
-            i,j = point
-            # self.cropped_seed_color[i,j] = (255,255,255)
-        
-        # self.colorImgCopy
 
-        if point in self.list_points_root:
-            # print("point found root", point)
+        if point in self.list_points_root:            
             self.list_points_root.remove(point)
-            # print("len(self.list_points_root)",len(self.list_points_root))
-            i,j = point
-            # self.cropped_seed_color[i,j] = (70,70,70)
 
+        if point in self.sorted_point_list:
+            self.sorted_point_list.remove(point)
+
+           
         self.update_everything()
         
         
@@ -346,12 +339,28 @@ class Seed():
             if point not in self.list_points_hypercotyl:
                 self.list_points_hypercotyl.append(point)
         
+        ### add point to the start of sorted point list
+        list_sorted = []
+        list_sorted.extend(point_list)
+        list_sorted.extend(self.sorted_point_list)
+        self.sorted_point_list = list_sorted
+
         self.update_everything()
       
         
-    def add_root_points(self, point):
+    def add_root_points(self, point_list):
         # print('add_hypercotyl_points function', point)
-        if point not in self.list_points_root:
-            self.list_points_root.append(point)
+        for point in point_list:
+            if point not in self.list_points_root:
+                self.list_points_root.append(point)
         
+
+        ### add point to the end of sorted point list
+        list_sorted = []
+        list_sorted.extend(self.sorted_point_list)
+        list_sorted.extend(point_list)
+        self.sorted_point_list = list_sorted
+
+
+
         self.update_everything()
