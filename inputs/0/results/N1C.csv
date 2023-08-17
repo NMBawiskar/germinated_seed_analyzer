@@ -1,7 +1,7 @@
 "SEP=,"
 ProSeedling Software
 Cultivar,Lot number,Number of seeds,Analyst,Date
-as,0,20,s,29-07-23
+,0,20,,15-08-23
 
 Seedling,hypocotyl,root,Total length,hypocotyl/root ratio
 1,6.88,13.75,20.62,0.5
@@ -26,4 +26,4 @@ Seedling,hypocotyl,root,Total length,hypocotyl/root ratio
 20,7.38,14.75,22.12,0.5
 
 Vigor Index,Growth,Uniformity,Germination,Average length,Standard deviation,Normal Seedlings,Abnormal Seedlings,Non germinated seeds
-1241.0,1398.0,876,100.0 %,699.0,2.62,20,0,0
+1241,1398,876,100.0 %,699.0,2.62,20,0,0

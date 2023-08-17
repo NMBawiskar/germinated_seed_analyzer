@@ -299,6 +299,25 @@ class Seed():
         else:
             print("No sorted point list...")
 
+    def update_everything(self):
+        imgCopy = cropImg(self.colorImgCopy, self.xywh).copy()
+        # cv2.imshow('before corrected', imgCopy)
+        for i, j in self.list_points_hypercotyl:
+            imgCopy[i,j] = (0,255,0)
+        for i, j in self.list_points_root:
+            imgCopy[i,j] = (255,0,0)
+        
+        # cv2.imshow('corrected', imgCopy)
+        # cv2.waitKey(1)
+        self.cropped_seed_color = imgCopy
+
+        self.hyperCotyl_length_pixels = len(self.list_points_hypercotyl)
+        self.radicle_length_pixels = len(self.list_points_root)
+        self.total_length_pixels = self.hyperCotyl_length_pixels + self.radicle_length_pixels
+        self.ratio_h_root =  round(self.hyperCotyl_length_pixels/self.radicle_length_pixels, 2) if self.radicle_length_pixels>0 else 'NA'
+
+        self.calculate_values_in_cm()
+
     def erase_points(self, point):
         # print('erase points',point)
         # print('self.list_points_hypercotyl',self.list_points_hypercotyl)
@@ -318,21 +337,21 @@ class Seed():
             i,j = point
             # self.cropped_seed_color[i,j] = (70,70,70)
 
-        imgCopy = cropImg(self.colorImgCopy, self.xywh).copy()
-        # cv2.imshow('before corrected', imgCopy)
-        for i, j in self.list_points_hypercotyl:
-            imgCopy[i,j] = (0,255,0)
-        for i, j in self.list_points_root:
-            imgCopy[i,j] = (255,0,0)
+        self.update_everything()
         
-        # cv2.imshow('corrected', imgCopy)
-        # cv2.waitKey(1)
-        self.cropped_seed_color = imgCopy
-
-        self.hyperCotyl_length_pixels = len(self.list_points_hypercotyl)
-        self.radicle_length_pixels = len(self.list_points_root)
-        self.total_length_pixels = self.hyperCotyl_length_pixels + self.radicle_length_pixels
-        self.ratio_h_root =  round(self.hyperCotyl_length_pixels/self.radicle_length_pixels, 2) if self.radicle_length_pixels>0 else 'NA'
-
-        self.calculate_values_in_cm()
         
+    def add_hypercotyl_points(self, point_list):
+        # print('add_hypercotyl_points function', point)
+        for point in point_list:
+            if point not in self.list_points_hypercotyl:
+                self.list_points_hypercotyl.append(point)
+        
+        self.update_everything()
+      
+        
+    def add_root_points(self, point):
+        # print('add_hypercotyl_points function', point)
+        if point not in self.list_points_root:
+            self.list_points_root.append(point)
+        
+        self.update_everything()

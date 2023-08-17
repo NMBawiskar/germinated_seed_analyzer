@@ -41,6 +41,8 @@ class CanvasLabel(QLabel):
         self.margin_y = 0
         self.eraserActive = False
         self.breakPointActive = False
+        self.penHypActive = False
+        self.penRootActive = False
 
         self.canvasMask = None
         self.last_x, self.last_y = None, None
@@ -72,6 +74,18 @@ class CanvasLabel(QLabel):
 
         # if delta_y > 0:
         #     self.margin_y = delta_y / 2
+    
+
+    def mousePressEvent(self, ev: QtGui.QMouseEvent) -> None:
+        print('pressed', ev.localPos())
+        self.last_x = int((ev.x()) / self.w * self.imgW) 
+        self.last_y = int((ev.y()) / self.h * self.imgH)
+        return super().mousePressEvent(ev)
+
+    # def mouseReleaseEvent(self, ev: QtGui.QMouseEvent) -> None:
+
+    #     return super().mouseReleaseEvent(ev)
+    
 
     def mouseMoveEvent(self, a0: QtGui.QMouseEvent) -> None:
         # print("ev", a0.x(), a0.y())
@@ -86,6 +100,7 @@ class CanvasLabel(QLabel):
         self.drawX = int((a0.x()) / self.w * self.imgW) 
         self.drawY = int((a0.y()) / self.h * self.imgH)
 
+        
 
         if self.breakPointActive:
             ## find closest point on contour 
@@ -163,7 +178,56 @@ class CanvasLabel(QLabel):
             self.last_x = self.drawX
             self.last_y = self.drawY
 
-        
+
+        if self.penHypActive:
+            # print(a0.button())
+            
+            # if a0.button()==Qt.MouseButton.LeftButton:
+            #     print('left button')
+            painter = QtGui.QPainter(self.canvasMask)
+
+            blnkImg = np.zeros((self.h, self.w), np.uint8)
+            cv2.line(blnkImg, (self.last_x, self.last_y),(self.drawX, self.drawY), 255,thickness=1)
+            # cv2.imshow('line',blnkImg)
+            # cv2.waitKey(1)
+            points = np.argwhere(blnkImg==255)
+            # print('white _ points', points)
+            points = list(points)
+            # print('white _ points list', points)
+            points = [list(point) for point in points]
+
+            # print('drawing ')
+            # QApplication.setOverrideCursor(Qt.CursorShape.SizeAllCursor)
+            # SET PEN
+            
+            # rgb_image = cv2.cvtColor(self.seedObj.cropped_seed_color, cv2.COLOR_BGR2RGB)
+            # imgPilMask = Image.fromarray(rgb_image).convert('RGB')        
+            # imMask = ImageQt(imgPilMask).copy()
+            # self.canvasMask= QtGui.QPixmap.fromImage(imMask)
+            # self.setPixmap(QPixmap.fromImage(ImageQt(imgPilMask)))
+
+            p = painter.pen()
+            self.pen_color_mask = QtGui.QColor('green')
+            
+            
+            p.setWidth(self.pen_thickness_eraser)
+            p.setColor(self.pen_color_mask)
+            painter.setPen(p)
+            qPoint = QPoint(self.drawX, self.drawY)
+            # painter.drawPoint(qPoint)
+            painter.drawLine(self.drawX, self.drawY, self.last_x, self.last_y)
+            # for point in points:
+            #     print('adding point', list(point))
+            self.seedObj.add_hypercotyl_points(points)
+                # self.seedObj.add_hypercotyl_points((self.drawY, self.drawX))
+
+            painter.end()
+            self.setPixmap(self.canvasMask)
+
+            self.last_x = self.drawX
+            self.last_y = self.drawY
+            self.update()
+
         self.seedEditor.update_values()
 
         QApplication.restoreOverrideCursor()
@@ -200,10 +264,14 @@ class SeedEditor(QWidget):
 
         self.btnEraser.setShortcut('e')
         self.btnPoint.setShortcut('b')
+        self.btnDrawHyp.setShortcut('1')
+        self.btnDrawRoot.setShortcut('2')
         # self.btnPen.setShortcut('p')
 
         self.btnEraser.clicked.connect(self.use_eraser)
         self.btnPoint.clicked.connect(self.use_breakPoint)
+        self.btnDrawHyp.clicked.connect(self.use_pen_hyp)
+        self.btnDrawRoot.clicked.connect(self.use_pen_root)
         # self.btnPen.clicked.connect(self.use_pen)
         # self.btnSave.clicked.connect(self.save_changes)
 
@@ -283,9 +351,41 @@ class SeedEditor(QWidget):
         self.btnEraser.setStyleSheet(self.btnNotClickedStylesheet)
         self.btnPoint.setStyleSheet(self.btnClickedStylesheet)
 
-    def use_pen(self):
-        print("Pen clicked")
+    def use_pen_hyp(self):
+        print("Pen use_pen_hyp clicked")
         self.pen_color_mask = QtGui.QColor('white')
+        self.eraserActive=False
+        self.breakPointActive=False
+        self.penHypActive = True
+        self.penRootActive = False
+        self.customLabel.penHypActive=True
+        self.customLabel.penRootActive=False
+        self.customLabel.breakPointActive=False
+        self.customLabel.eraserActive=False
+
+        self.btnDrawHyp.setStyleSheet(self.btnClickedStylesheet)
+        self.btnDrawRoot.setStyleSheet(self.btnNotClickedStylesheet)
+        self.btnEraser.setStyleSheet(self.btnNotClickedStylesheet)
+        self.btnEraser.setStyleSheet(self.btnNotClickedStylesheet)
+
+    
+    
+    def use_pen_root(self):
+        print("Pen use_pen_hyp clicked")
+        self.pen_color_mask = QtGui.QColor('white')
+        self.eraserActive=False
+        self.breakPointActive=False
+        self.penHypActive = True
+        self.penRootActive = False
+        self.customLabel.penHypActive=False
+        self.customLabel.penRootActive=True
+        self.customLabel.breakPointActive=False
+        self.customLabel.eraserActive=False
+        self.btnDrawHyp.setStyleSheet(self.btnNotClickedStylesheet)
+        self.btnDrawRoot.setStyleSheet(self.btnClickedStylesheet)
+        self.btnEraser.setStyleSheet(self.btnNotClickedStylesheet)
+        self.btnEraser.setStyleSheet(self.btnNotClickedStylesheet)
+
 
     def display_mask(self):
         cv2.imshow('mask_skeleton', self.seedObj.singlBranchBinaryImg)
@@ -311,10 +411,11 @@ class SeedEditor(QWidget):
 
     def setColorPixmap(self):
         # Load skeletonized mask for editing
-        rgb_image = cv2.cvtColor(self.seedObj.cropped_seed_color, cv2.COLOR_BGR2RGB)
+        rgb_image = cv2.cvtColor(self.seedObj.cropped_seed_color, cv2.COLOR_BGR2RGB)        
         imgPilMask = Image.fromarray(rgb_image.copy()).convert('RGB')        
         imMask = ImageQt(imgPilMask).copy()
         self.canvasMask_seededitor= QtGui.QPixmap.fromImage(imMask)
+        self.label_img_seed_mask.setPixmap(self.canvasMask_seededitor)
         self.label_img_seed_mask.setPixmap(self.canvasMask_seededitor)
 
     def setSeedObj(self,seedObj):
@@ -340,7 +441,8 @@ class SeedEditor(QWidget):
 
         self.customLabel.seedObj = seedObj
         self.customLabel.setGeometry(self.customLabel.x, self.customLabel.y, self.customLabel.w, self.customLabel.h)
-        self.customLabel.apply_cv2_image(self.seedObj.singlBranchBinaryImg)
+        # self.customLabel.apply_cv2_image(self.seedObj.singlBranchBinaryImg)
+        self.customLabel.apply_cv2_image(self.seedObj.cropped_seed_color)
 
 
         self.label_img_seed_mask.setGeometry(self.delta_x, self.customLabel.y, self.customLabel.w, self.customLabel.h)

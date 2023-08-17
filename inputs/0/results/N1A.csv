@@ -1,11 +1,11 @@
 "SEP=,"
 ProSeedling Software
 Cultivar,Lot number,Number of seeds,Analyst,Date
-sd,0,20,s,29-07-23
+,0,20,,17-08-23
 
 Seedling,hypocotyl,root,Total length,hypocotyl/root ratio
 1,7.5,11.25,18.75,0.67
-2,0.28,4.88,5.15,0.06
+2,3.73,4.33,8.05,0.86
 3,7.8,11.7,19.5,0.67
 4,6.5,13.0,19.5,0.5
 5,5.25,10.5,15.75,0.5

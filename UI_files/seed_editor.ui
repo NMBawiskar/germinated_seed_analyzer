@@ -20,9 +20,9 @@
    <property name="geometry">
     <rect>
      <x>810</x>
-     <y>410</y>
-     <width>151</width>
-     <height>28</height>
+     <y>420</y>
+     <width>171</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -233,8 +233,8 @@ color:white;</string>
     <rect>
      <x>810</x>
      <y>470</y>
-     <width>151</width>
-     <height>28</height>
+     <width>171</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -266,6 +266,50 @@ border-radius:4;</string>
     <bool>true</bool>
    </property>
   </widget>
+  <widget class="QPushButton" name="btnDrawHyp">
+   <property name="geometry">
+    <rect>
+     <x>810</x>
+     <y>320</y>
+     <width>171</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color:rgba(216, 229, 253,255);
+font: 63 10pt &quot;Segoe UI Semibold&quot;;
+color: rgb(32, 24, 255);
+border-radius:4;</string>
+   </property>
+   <property name="text">
+    <string>Draw Hypocotyl (1)</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnDrawRoot">
+   <property name="geometry">
+    <rect>
+     <x>810</x>
+     <y>370</y>
+     <width>171</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color:rgba(216, 229, 253,255);
+font: 63 10pt &quot;Segoe UI Semibold&quot;;
+color: rgb(32, 24, 255);
+border-radius:4;</string>
+   </property>
+   <property name="text">
+    <string>Draw Root (2)</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+  </widget>
   <zorder>groupBox</zorder>
   <zorder>btnEraser</zorder>
   <zorder>radioBtnNormalSeed</zorder>
@@ -274,6 +318,8 @@ border-radius:4;</string>
   <zorder>gridLayoutWidget</zorder>
   <zorder>btnPoint</zorder>
   <zorder>label_img_seed_mask</zorder>
+  <zorder>btnDrawHyp</zorder>
+  <zorder>btnDrawRoot</zorder>
  </widget>
  <resources/>
  <connections/>
