@@ -56,7 +56,23 @@ def cropImg(img, tuple_xywh):
     x,y,w,h = tuple_xywh
     cropped = img[y:y+h+1, x:x+w+1]
     return cropped 
+
+
+def cropImg_with_margin(img, tuple_xywh, percent_margin= 5):
+    x,y,w,h = tuple_xywh
+    margin_h = int(h * percent_margin/100)  # 5 percent
+    margin_w = int(w * percent_margin/100)  # 5 percent
+
+    y1 = y - margin_h if y -margin_h>0 else 0
+    x1 = x - margin_w if x - margin_w>0 else 0
+    y2 = y + h + margin_h + 1
+    x2 = x + w + margin_w + 1  
+
     
+    cropped = img[y1:y2, x1:x2]
+    return cropped 
+
+
 
 def get_line_endpoints_intersections(skeletonized_img_np_array):
     whitepixels = np.argwhere(skeletonized_img_np_array==255)
@@ -150,6 +166,6 @@ def sort_xywh_l_to_r(xywh_list):
     return final_sorted_list
 
 ##
-l = [[9,5,10,20], [5,7,10,20], [2,5,10,20],[8,6,10,20],
-     [9,20,10,20], [5,21,10,20], [2,25,10,20],[8,28,10,20]]
-sort_xywh_l_to_r(l)
+# l = [[9,5,10,20], [5,7,10,20], [2,5,10,20],[8,6,10,20],
+#      [9,20,10,20], [5,21,10,20], [2,25,10,20],[8,28,10,20]]
+# sort_xywh_l_to_r(l)

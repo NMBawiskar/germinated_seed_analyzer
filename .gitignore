@@ -18,4 +18,5 @@ germinated_seed_analyzer.zip
 resources
 *.zip
 req_changes
-inputs
+inputs/
+results/

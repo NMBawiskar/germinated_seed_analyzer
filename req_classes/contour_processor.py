@@ -118,6 +118,7 @@ class Seed():
         self.cropped_seed_binary = cropImg(self.imgBinarySeed, self.xywh)
         self.cropped_seed_color = cropImg(self.colorImg, self.xywh)
         
+        
 
         self.imgBinarySeedWoHead = cv2.subtract(self.cropped_seed_binary, self.cropped_head_binary)
 

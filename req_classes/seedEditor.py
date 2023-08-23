@@ -485,9 +485,15 @@ class SeedEditor(QWidget):
 
         # self.setColorPixmap()
 
+        ###
+        # self.mainUi.mainProcessor.batchAnalyser.recalculate_all_metrics()
         self.mainUi.show_analyzed_results()
+        self.mainUi.save_results_to_csv()
         self.mainUi.update_result_img()
-    
+
+
+
+
     def change_value_hypocotyl(self):
         
         try:

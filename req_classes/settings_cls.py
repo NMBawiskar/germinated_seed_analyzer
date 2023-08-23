@@ -19,7 +19,7 @@ class GlobalSettings(QWidget):
         self.lineEdit_abnormal_seedL.setText(str(self.mainUi.abnormal_seed_max_length_r_h))
         self.lineEdit_normal_seedL.setText(str(self.mainUi.normal_seed_max_length_r_h))
         self.lineEdit_avg_rad_length.setText(str(self.mainUi.thres_avg_max_radicle_thickness))
-        self.lineEdit_avg_seed_length.setText(str(self.mainUi.average_seed_total_length))
+        self.lineEdit_avg_seed_length.setText(str(self.mainUi.user_given_seedling_length))
 
 
         self.spinBox_n_seg.setValue(self.mainUi.n_segments_each_skeleton)
@@ -47,8 +47,8 @@ class GlobalSettings(QWidget):
             self.mainUi.dict_settings['thresh_avg_max_radicle_thickness'] =  int(self.lineEdit_avg_rad_length.text())
 
         if len(self.lineEdit_avg_seed_length.text())>0 and self.lineEdit_avg_seed_length.text().isnumeric():
-            self.mainUi.average_seed_total_length =  int(self.lineEdit_avg_seed_length.text())
-            self.mainUi.dict_settings['average_seed_total_length'] =  int(self.lineEdit_avg_seed_length.text())
+            self.mainUi.user_given_seedling_length =  int(self.lineEdit_avg_seed_length.text())
+            self.mainUi.dict_settings['user_given_seedling_length'] =  int(self.lineEdit_avg_seed_length.text())
         
         
             

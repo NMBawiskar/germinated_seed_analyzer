@@ -22,6 +22,7 @@ import cv2
 import json
 import traceback
 from PyQt5.QtWidgets import QApplication
+from utils_pyqt5 import showdialog
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -314,13 +315,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.highlight_seed_with_rect(seedObjSelected)
         
         self.show_seed_editor_window()
-        
-
-        # cv2.imshow(f"Seed {index.row()}",self.mainProcessor.SeedObjList[index.row()].cropped_seed_color)
-        # cv2.waitKey(-1)
-        # indexes = self.tableView_res.selectionModel().selectedRows()
-        # for index in sorted(indexes):
-        #     print('Row %d is selected' % index.row())
 
     def summarize_results(self):
         """"""
@@ -430,10 +424,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 csvWriter.writerow(list_each)
       
     def create_settings_if_not_present(self):
-        # if not os.path.exists(self.settings_file_path):
-        #     self.save_settings_to_file()
-        # if not os.path.exists(self.settings_hsv_path):
-        #     self.save_hsv_settings_to_file()
         if not os.path.exists(self.settings_json_file_path):
             with open(self.settings_json_file_path,'w+') as f:
                 json.dump(self.dict_settings, f)
@@ -466,9 +456,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.setCursor(Qt.CursorShape.BusyCursor)
             self.process_img_and_display_results()
-            # self.showImg()
-            # self.output_dir = self.input_folder_path
-            # self.process_img_and_display_results()
             imgNo = 1
             total_images = len(self.imagePaths)
             self.label_img_no.setText(f"{imgNo} / {total_images}")
@@ -522,36 +509,39 @@ class MainWindow(QtWidgets.QMainWindow):
             pass
         
         # batchAnalyserObj = self.batchAnalyzerObjList[self.currentImgIndex]
-        
-        with open(output_result_csv_path, 'a+', newline="") as f:
-            writer = csv.writer(f)
-            line0 = ['SEP=,']
-            line1 = ["ProSeedling Software"]
-            line2 = ["Cultivar", "Lot number", "Number of seeds", "Analyst", "Date"]
-            line3 = [self.cultivatorName, self.batchNo, self.n_seeds, self.analystsName, date_str]
-            line4 = []
-            line5 = ["Seedling", 'hypocotyl', 'root', 'Total length', 'hypocotyl/root ratio']
-            line_list1 = [line0, line1, line2, line3, line4, line5]
-            writer.writerows(line_list1)
+        try:        
+            with open(output_result_csv_path, 'a+', newline="") as f:
+                writer = csv.writer(f)
+                line0 = ['SEP=,']
+                line1 = ["ProSeedling Software"]
+                line2 = ["Cultivar", "Lot number", "Number of seeds", "Analyst", "Date"]
+                line3 = [self.cultivatorName, self.batchNo, self.n_seeds, self.analystsName, date_str]
+                line4 = []
+                line5 = ["Seedling", 'hypocotyl', 'root', 'Total length', 'hypocotyl/root ratio']
+                line_list1 = [line0, line1, line2, line3, line4, line5]
+                writer.writerows(line_list1)
+                
+                for line in self.data_each_seed:
+                    writer.writerow(line)
             
-            for line in self.data_each_seed:
-                writer.writerow(line)
-         
-            lineBlank = []
-            line6 = ['Vigor Index', 'Growth', 'Uniformity', 'Germination', 'Average length', 'Standard deviation',
-                        'Normal Seedlings', 'Abnormal Seedlings', 'Non germinated seeds']
-            line7 = [self.seed_vigor_index, self.growth, self.uniformity, f"{self.germination_percent} %",self.avg_length, self.std_deviation,
-                     self.count_germinated_seeds, self.count_abnormal_seeds, self.count_dead_seeds]
+                lineBlank = []
+                line6 = ['Vigor Index', 'Growth', 'Uniformity', 'Germination', 'Average length', 'Standard deviation',
+                            'Normal Seedlings', 'Abnormal Seedlings', 'Non germinated seeds']
+                line7 = [self.seed_vigor_index, self.growth, self.uniformity, f"{self.germination_percent} %",self.avg_length, self.std_deviation,
+                        self.count_germinated_seeds, self.count_abnormal_seeds, self.count_dead_seeds]
 
-            writer.writerows([lineBlank, line6, line7])
-            
-            
-            # data_pandas = pd.DataFrame([data], columns = ['Seedling No', 'Hypercotyl length', 'Radicle length', 'Total length'])
+                writer.writerows([lineBlank, line6, line7])
+                
+                
+                # data_pandas = pd.DataFrame([data], columns = ['Seedling No', 'Hypercotyl length', 'Radicle length', 'Total length'])
 
-            self.model = TableModel(self.data_each_seed)
-            self.model.columns=['Seedling', 'Hypocotyl (cm)', 'Root (cm)', 'Total (cm)', 'Hypocotyl/root ratio']
-            self.tableView_res.setModel(self.model)
-            self.tableView_res.resizeColumnsToContents()
+                self.model = TableModel(self.data_each_seed)
+                self.model.columns=['Seedling', 'Hypocotyl (cm)', 'Root (cm)', 'Total (cm)', 'Hypocotyl/root ratio']
+                self.tableView_res.setModel(self.model)
+                self.tableView_res.resizeColumnsToContents()
+        except PermissionError as e:
+            showdialog('Please close the opened .csv file !! Changes would not be saved...')
+
 
     def show_analyzed_results(self):
         # batchAnalyserObj = self.batchAnalyzerObjList[self.currentImgIndex]
@@ -600,8 +590,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 ## Process for main
                 imgPath = self.imagePaths[self.currentImgIndex]
                 self.list_hypercotyl_radicle_lengths, colorImg, self.batchAnalyzerObj = self.mainProcessor.process_main(imgPath)
-                # self.batchAnalyzerObjList[self.currentImgIndex] = batchAnalyzerObj
-
+                
 
                 self.std_deviation = self.batchAnalyzerObj.std_deviation
                 self.growth = round(self.batchAnalyzerObj.growth,2)
@@ -621,12 +610,7 @@ class MainWindow(QtWidgets.QMainWindow):
             list_total_lengths = []
             self.data_each_seed = []
 
-            # for i in range(len(self.list_hypercotyl_radicle_lengths)):
-            #     hyp, rad = self.list_hypercotyl_radicle_lengths[i]
-            #     seed_length = hyp + rad
-            #     ratio_h_root = round(hyp/rad, 2) if rad>0 else 'NA'
-            #     line = [i+1, hyp, rad, seed_length,  ratio_h_root]
-
+            
             for i, seedObj in enumerate(self.batchAnalyzerObj.seedObjList):
                 line = [i+1, seedObj.hyperCotyl_length_cm, seedObj.radicle_length_cm, seedObj.total_length_cm, seedObj.ratio_h_root]
                 self.data_each_seed.append(line)
@@ -641,10 +625,7 @@ class MainWindow(QtWidgets.QMainWindow):
             
 
             self.show_analyzed_results()
-
-
             self.save_results_to_csv()
-            # QApplication.restoreOverrideCursor()
             self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def loadNextImg(self):
@@ -736,26 +717,17 @@ class MainWindow(QtWidgets.QMainWindow):
             if self.viewer.factor is not None:
                 scaleFactor = self.viewer.factor
                 resizedImgH, resizedImgW = int(hImg*scaleFactor), int(wImg * scaleFactor)
-                # print('resizedImgH, resizedImgW',resizedImgH, resizedImgW)
-                # transformedMousePos = [int(mouse_loc[0] / scaleFactor), int(mouse_loc[1]/scaleFactor)] 
-
+            
                 diff_x = windowW - resizedImgW
                 diff_y = windowH - resizedImgH
                 dx_half = diff_x / 2
                 dy_half = diff_y / 2
-                # print('dx_half, dy_half ',dx_half, dy_half)
-
-                
+                            
                 x_in_img = x_mouse - dx_half
                 y_in_img = y_mouse - dy_half
-                # print("x_in_img, y_in_img",x_in_img, y_in_img)
-
+            
                 transformedMousePos = [int(x_in_img/scaleFactor), int(y_in_img/scaleFactor)]
                 print("transformedMousePos", transformedMousePos)
-
-
-
-
 
             for i, seedobj in enumerate(self.mainProcessor.SeedObjList):
                 # print(i, seedobj.xywh)
@@ -769,9 +741,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
                     self.highlight_seed_with_rect(seedobj)
                     self.tableView_res.selectRow(i)
-                    
-
-
+    
                     self.show_seed_editor_window()
                     break
 

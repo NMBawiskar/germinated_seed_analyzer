@@ -102,9 +102,7 @@ class Main_Processor:
 
 
             comparison = np.hstack((croppedCntSeed, croppedCntHead, resultIntersection))
-            # display_img("Comparison", comparison)
-            # cv2.waitKey(-1)
-
+    
         contourProcessor.shortlisted_contours = final_shortListedCnts    
         result_cnt_drawn =contourProcessor.display_shortlisted_contours(imgColor=img)
         # display_img('drawnContours', result_cnt_drawn)
