@@ -22,36 +22,41 @@ class CalibrationSettings(QWidget):
 
 
     def load_calib_image(self):
-
         qWid = QWidget()
-        print("Select measurements caliberation image")
-        filepath, _ = QFileDialog.getOpenFileName(qWid, 'Select measurements caliberation image','',"Image files (*.jpg)")
+        print("Select measurements calibration image")
+        filepath, _ = QFileDialog.getOpenFileName(qWid, 'Select measurements calibration image','',"Image files (*.jpg)")
         if not os.path.exists(filepath):
             ut.showdialog("Please select a file")
         else:
-            img = cv2.imread(filepath)
-            
-            result_pixel_per_cm = get_pixel_to_cm(img, self.checkerboard_size)
-            if result_pixel_per_cm is not None:
-                self.mainUi.pixel_per_cm = result_pixel_per_cm
-
-                print("Pixels per centimeter is :", self.mainUi.pixel_per_cm)
-                # cv2.imshow('img', img)
-                self.mainUi.dict_settings['factor_pixel_to_cm'] = self.mainUi.pixel_per_cm
-                # cv2.waitKey(-1)
-                print("self.dict_settings['factor_pixel_to_cm']", self.mainUi.dict_settings['factor_pixel_to_cm'])
-                self.lineEdit_pixel_cm.setText(str(self.mainUi.dict_settings['factor_pixel_to_cm']))
-
-                ut.showdialog(f"Calibration done! \n {self.mainUi.pixel_per_cm} pixel = 1 cm. ")
-                self.mainUi.save_settings_to_file()
-                self.mainUi.process_img_and_display_results()
-                self.close()
-            else:
-                ut.showdialog(f"Calibration not done! \n Image could not be processed.")
+            try:
+                img = cv2.imread(filepath)
+                if img is None:
+                    raise ValueError("File is not a valid image.")
                 
+                result_pixel_per_cm = get_pixel_to_cm(img, self.checkerboard_size)
+                if result_pixel_per_cm is not None:
+                    self.mainUi.pixel_per_cm = result_pixel_per_cm
+
+                    if self.mainUi.pixel_per_cm is None:
+                        raise ValueError("Could not calculate pixels per centimeter.")
+                    print("Pixels per centimeter is :", self.mainUi.pixel_per_cm)
+                    # cv2.imshow('img', img)
+                    self.mainUi.dict_settings['factor_pixel_to_cm'] = self.mainUi.pixel_per_cm
+                    
+                    # print("self.dict_settings['factor_pixel_to_cm']", self.mainUi.dict_settings['factor_pixel_to_cm'])
+                    self.lineEdit_pixel_cm.setText(str(self.mainUi.dict_settings['factor_pixel_to_cm']))
+
+                    ut.showdialog(f"Calibration done! \n {self.mainUi.pixel_per_cm} pixel = 1 cm. ")
+                    self.mainUi.save_settings_to_file()
+                    self.mainUi.process_img_and_display_results()
+                else:
+                    ut.showdialog(f"Calibration not done! \n Image could not be processed.")
+            except Exception as e:
+                ut.showdialog(f"Error: {str(e)}")
+            self.close()
 
     def saveSetting(self):
-        if len(self.lineEdit_pixel_cm.text())>0 and self.lineEdit_pixel_cm.text().isnumeric():
+        if len(self.lineEdit_pixel_cm.text()) > 0 and self.lineEdit_pixel_cm.text().isnumeric():
             self.mainUi.pixel_per_cm =  int(self.lineEdit_pixel_cm.text())
             self.mainUi.dict_settings['factor_pixel_to_cm'] = int(self.lineEdit_pixel_cm.text())
 
@@ -59,6 +64,6 @@ class CalibrationSettings(QWidget):
             ut.showdialog(f"Saved! \n {self.mainUi.pixel_per_cm} pixel = 1 cm. \n Saved in settings. ")
             self.mainUi.process_img_and_display_results()
         else:
-            ut.showdialog(f"Please enter integer value. ")
+            ut.showdialog(f"Please enter a positive integer value.")
         
         self.close()

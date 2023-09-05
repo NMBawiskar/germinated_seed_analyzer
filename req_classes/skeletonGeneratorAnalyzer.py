@@ -348,7 +348,7 @@ class SkeltonizerContour:
             self.sorted_points_list = totalSortedPoints
             self.__divide_final_branch_and_analyse_lengths(totalSortedPoints, self.singlBranchImg)
 
-        else:
+        elif len(self.branch_list)!=0:
             ##### remove small branches to keep single branch only
             branchListObj = BranchList(self.skeltonized) 
             

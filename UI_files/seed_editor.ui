@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1133</width>
+    <width>953</width>
     <height>1018</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
   <widget class="QPushButton" name="btnEraser">
    <property name="geometry">
     <rect>
-     <x>810</x>
+     <x>590</x>
      <y>420</y>
      <width>171</width>
      <height>31</height>
@@ -41,7 +41,7 @@ border-radius:4;</string>
   <widget class="QRadioButton" name="radioBtnNormalSeed">
    <property name="geometry">
     <rect>
-     <x>820</x>
+     <x>600</x>
      <y>640</y>
      <width>171</width>
      <height>20</height>
@@ -58,7 +58,7 @@ color:white;</string>
   <widget class="QRadioButton" name="radioBtnAbnormalSeed">
    <property name="geometry">
     <rect>
-     <x>820</x>
+     <x>600</x>
      <y>670</y>
      <width>181</width>
      <height>20</height>
@@ -75,7 +75,7 @@ color:white;</string>
   <widget class="QRadioButton" name="radioBtnDeadSeed">
    <property name="geometry">
     <rect>
-     <x>820</x>
+     <x>600</x>
      <y>700</y>
      <width>161</width>
      <height>20</height>
@@ -92,7 +92,7 @@ color:white;</string>
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>750</x>
+     <x>530</x>
      <y>60</y>
      <width>361</width>
      <height>201</height>
@@ -214,7 +214,7 @@ color:white;</string>
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
-     <x>760</x>
+     <x>540</x>
      <y>610</y>
      <width>261</width>
      <height>141</height>
@@ -231,7 +231,7 @@ color:white;</string>
   <widget class="QPushButton" name="btnPoint">
    <property name="geometry">
     <rect>
-     <x>810</x>
+     <x>590</x>
      <y>470</y>
      <width>171</width>
      <height>31</height>
@@ -247,29 +247,10 @@ border-radius:4;</string>
     <string>BreakPoint (b)</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_img_seed_mask">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>30</y>
-     <width>301</width>
-     <height>951</height>
-    </rect>
-   </property>
-   <property name="mouseTracking">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="scaledContents">
-    <bool>true</bool>
-   </property>
-  </widget>
   <widget class="QPushButton" name="btnDrawHyp">
    <property name="geometry">
     <rect>
-     <x>810</x>
+     <x>590</x>
      <y>320</y>
      <width>171</width>
      <height>31</height>
@@ -291,7 +272,7 @@ border-radius:4;</string>
   <widget class="QPushButton" name="btnDrawRoot">
    <property name="geometry">
     <rect>
-     <x>810</x>
+     <x>590</x>
      <y>370</y>
      <width>171</width>
      <height>31</height>
@@ -317,7 +298,6 @@ border-radius:4;</string>
   <zorder>radioBtnDeadSeed</zorder>
   <zorder>gridLayoutWidget</zorder>
   <zorder>btnPoint</zorder>
-  <zorder>label_img_seed_mask</zorder>
   <zorder>btnDrawHyp</zorder>
   <zorder>btnDrawRoot</zorder>
  </widget>

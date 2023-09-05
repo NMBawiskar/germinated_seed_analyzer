@@ -1,9 +1,9 @@
-
-
 import cv2
 import numpy as np
 
-def get_pixel_to_cm(img, checkerboard_size):
+#------------------------------ NEW WORKING CODE -------------------------------------------
+
+def get_pixel_to_cm(img, checkerboard_size = (28,20)):
     
     # Load the image
     # img = cv2.imread(img)
@@ -34,14 +34,10 @@ def get_pixel_to_cm(img, checkerboard_size):
         average_square_size_pixels = np.mean(square_size_pixels)
         # Since the size of a square in the real world is 1cm, our conversion factor from pixels to cm is then:
         pixel_per_cm = 1 / average_square_size_pixels
+        pixel_per_cm = np.round( 1/pixel_per_cm)
         print(f"Conversion factor: {pixel_per_cm} cm/pixel") # = 0.021289622730154698
         print(f"1cm is equal to:", (1/pixel_per_cm))         # = 46.97124099731445 
         return pixel_per_cm
     else:
         print("Could not find chessboard corners")
         return None
-
-# # Example usage
-# pixels_to_cm = compute_conversion_factor('001 - 48px_1cm.jpg', (28, 20))
-# print(f"Conversion factor: {pixels_to_cm} cm/pixel")
-# print(f"1cm is equal to:", (1/pixels_to_cm))

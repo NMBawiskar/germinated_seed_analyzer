@@ -1,27 +1,28 @@
 from PyQt5 import QtWidgets, QtMultimedia, QtCore,QtGui
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import Qt
-import sys
-import utils_pyqt5 as ut
-from utils import check_if_point_lies_xywh_box
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QWidget, QFileDialog
-from main_processor import Main_Processor
+from PyQt5.QtWidgets import QApplication
+
+import sys
+import cv2
+import json
+import traceback
 import os
 import csv
+import numpy as np
+import pandas as pd
+import utils_pyqt5 as ut
+from utils import check_if_point_lies_xywh_box
+from main_processor import Main_Processor
 from req_classes.settings_cls import GlobalSettings
 from req_classes.setting_pixel_cm import CalibrationSettings
 from req_classes.setHSVclass import SetHSV
 from datetime import datetime
-import numpy as np
-import pandas as pd
 from class_photo_viewer import PhotoViewer
 from req_classes.pixel_to_cm import get_pixel_to_cm
 from req_classes.seedEditor import SeedEditor
-import cv2
-import json
-import traceback
-from PyQt5.QtWidgets import QApplication
 from utils_pyqt5 import showdialog
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -47,14 +48,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.new_screen_h = sizeObject.height()
         
         
-        # menubar = QtWidgets.QMenuBar()
+#_________________ ADD MENUS 'FILE' AND 'CONFIGURATION'______________________________________________________________
         
         filemenu = self.menubar.addMenu('File')
         
         filemenu.addAction('Open Folder', self.browse_input_folder)
         filemenu.addAction('Inputs', self.give_inputs)
       
-
         menuConfig = self.menubar.addMenu('Configuration')
         menuConfig.addAction("Import Configurations", self.import_settings)
         menuConfig.addAction("Export Settings", self.export_settings)
@@ -62,16 +62,32 @@ class MainWindow(QtWidgets.QMainWindow):
         menuConfig.addAction("Set HSV values",self.set_hsv_values)
         menuConfig.addAction("Set calibration",self.set_pixel_cm_values)
         menuConfig.addAction("Restore Defaults",self.restore_default_settings)
-
-
-
-        filemenu.setStyleSheet("""background-color: None;
-                            font: 63 10pt "Segoe UI";
-                            border-top: none;
-                            border-left:none;
-                            border-bottom:none;
-                            border-left:3px solid  
-                            rgb(44,205,112);""")
+        
+        #___ EDIT STYLES ______________________________________________________________
+        
+        background_color = self.palette().color(QtGui.QPalette.Background).name()
+        selected_text_color = "white"
+        # menu_color = "rgb(0, 153, 255)" # Replace with your desired menu color
+        self.menuBar().setStyleSheet(f"background-color: {background_color};")
+        
+        menu_style = f"QMenu::item {{ background-color: {background_color}; }}" \
+                     f"QMenu::item:selected {{ color: {selected_text_color}; }}" # Style for selected item
+        
+        filemenu.setStyleSheet(menu_style)
+        menuConfig.setStyleSheet(menu_style)
+        
+#_________________________________________________________________________________________________________________
+        
+        
+        
+        
+        # filemenu.setStyleSheet("""background-color: None;
+        #                     font: 63 10pt "Segoe UI";
+        #                     border-top: none;
+        #                     border-left:none;
+        #                     border-bottom:none;
+        #                     border-left:3px solid  
+        #                     rgb(44,205,112);""")
         
         self.input_folder_path = None
         self.imagePaths = []
@@ -95,7 +111,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.p_h = 0.10
         self.p_r = 0.90
 
-        self.pixel_per_cm = 40
+        self.pixel_per_cm = 72
 
         self.hsv_values_seed_heads = [0,127,0,255,0,34]     ###### Default values do not change here
         self.hsv_values_seed = [0,179,0,255,0,162]          ###### Default values do not change here
@@ -141,7 +157,20 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.weights_factor_growth_Pc, self.weights_factor_uniformity_Pu]
         
         self.seed_editor_window_shown=False
-
+        
+        '''
+        JA TEM UM OBJETO PEGANDO OS DADOS DO ARQUIVO DE CONFIGURAÇÃO...
+        ENTÃO A MAIORIA DAS COISAS ACIMA DÁ PRA DELETAR.
+        
+        APARENTEMENTE ESSA PARTE DO CÓDICO CRIA UM ARQUIVO DE CONFIGURAÇÃO.
+        E ISSO SE REPETE EM def restore_default_settings(self):...
+        ONDE OUTRO ARQUIVO É CRIADO, IDENTICO A ESSE ABAIXO.
+        
+        SE PODE RODAR def read_settings(self): NO COMEÇO DO SCRIPT, INVÉS DE DIZER TUDO NOVAMENTE.
+        
+        EXPERIMENTO: COMENTEI O def read_settings(self): INTEIRO, E NÃO MUDOU NADA NO PROGRAMA.
+        
+        '''
         self.dict_settings = {                            
                             "dead_seed_max_length": self.dead_seed_max_length_r_h, 
                             "abnormal_seed_max_length":self.abnormal_seed_max_length_r_h, 
@@ -483,6 +512,9 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(self.mainProcessor.SeedObjList)>0:
             for seedObj in self.mainProcessor.SeedObjList:
                 x1, y1, w, h = seedObj.xywh
+                
+
+
                 updatedResImg[y1:y1+h+1, x1:x1+w+1] = seedObj.cropped_seed_color
 
         updatedResImg = cv2.cvtColor(updatedResImg, cv2.COLOR_BGR2RGB)

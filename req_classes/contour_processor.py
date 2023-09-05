@@ -117,15 +117,11 @@ class Seed():
         self.cropped_head_binary = cropImg(self.imgBinaryHead, self.xywh)
         self.cropped_seed_binary = cropImg(self.imgBinarySeed, self.xywh)
         self.cropped_seed_color = cropImg(self.colorImg, self.xywh)
-        
-        
-
+        #NOTE: this is risky... pl check
+        # self.cropped_seed_color = cropImg_with_margin(self.colorImg, self.xywh, percent_margin=5)
         self.imgBinarySeedWoHead = cv2.subtract(self.cropped_seed_binary, self.cropped_head_binary)
 
-        # display_img('cropped_seed_color',self.cropped_seed_color)
-        # display_img('cropped_seed_binary',self.cropped_seed_binary)
-        # display_img('cropped_head_binary',self.cropped_head_binary)
-        # cv2.waitKey(-1)
+        
     
     def load_settings(self):
         with open(self.settings_file_path, 'r') as f:
@@ -342,8 +338,8 @@ class Seed():
         
         ### add point to the start of sorted point list
         list_sorted = []
-        list_sorted.extend(point_list)
         list_sorted.extend(self.sorted_point_list)
+        list_sorted.extend(point_list)
         self.sorted_point_list = list_sorted
 
         self.update_everything()
@@ -358,8 +354,8 @@ class Seed():
 
         ### add point to the end of sorted point list
         list_sorted = []
-        list_sorted.extend(self.sorted_point_list)
         list_sorted.extend(point_list)
+        list_sorted.extend(self.sorted_point_list)
         self.sorted_point_list = list_sorted
 
 
