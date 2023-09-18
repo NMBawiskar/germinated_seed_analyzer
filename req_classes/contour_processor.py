@@ -280,9 +280,21 @@ class Seed():
                     self.cropped_seed_color[i,j] = (255,0,0)
                     
                     self.radicle_length_pixels+=1
+
+                    ## edit2 check
+                    if [i,j] not in self.list_points_root:
+                        self.list_points_root.append([i,j])
+                    if [i,j] in self.list_points_hypercotyl:
+                        self.list_points_hypercotyl.remove([i,j])
+
+
                 else:
                     self.cropped_seed_color[i,j] = (0,255,0)
                     self.hyperCotyl_length_pixels+=1
+                    if [i,j] not in self.list_points_hypercotyl:
+                        self.list_points_hypercotyl.append([i,j])
+                    if [i,j] in self.list_points_root:
+                        self.list_points_root.remove([i,j])
             
             
             self.total_length_pixels = self.hyperCotyl_length_pixels + self.radicle_length_pixels
