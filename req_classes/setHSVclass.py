@@ -139,6 +139,7 @@ class SetHSV(QWidget):
             print("setting hsvValuesToread of body", self.hsvValuesToread)
 
         self.mainUi.save_settings_to_file()
+        self.mainUi.process_img_and_display_results()
         showdialog("HSV settings saved successfully!!")
         self.close_window()
 

@@ -22,6 +22,7 @@ class SkeltonizerContour:
 
         self.each_branch_image = []
         self.list_each_branch_points = []
+        self.singlBranchImg = None
 
         self.branch_list = []
 
@@ -199,7 +200,7 @@ class SkeltonizerContour:
                 segment = sortedBranchPointList[i*div_length:i*div_length+div_length]
                 segmentList.append(segment)
 
-                cv2.circle(singlBranchImgBinary, (x,y), 3,255,1)
+                # cv2.circle(singlBranchImgBinary, (x,y), 3,255,1)
                 # print("breakPointList",breakPointList)
             
             # display_img("breakPoints",singlBranchImg)
@@ -265,7 +266,7 @@ class SkeltonizerContour:
 
         whites = branch_point_lists[maxBranchLengthIndex]
         
-        singlBranchImg, sortedPointList, enpointsBtmUp, btmMostEndpnt = self.__sort_branch_bottom_up(branchPointList_yx=whites)
+        self.singlBranchImg, sortedPointList, enpointsBtmUp, btmMostEndpnt = self.__sort_branch_bottom_up(branchPointList_yx=whites)
         self.sorted_points_list = sortedPointList
         
 
@@ -310,10 +311,10 @@ class SkeltonizerContour:
                 # 3.
             ###
             #### Get bottom most endpoint (start from bottom)
-            singlBranchImg, sortedPointList, enpointsBtmUp, btmMostEndpnt = self.__sort_branch_bottom_up(self.list_continuous_line_points)
+            self.singlBranchImg, sortedPointList, enpointsBtmUp, btmMostEndpnt = self.__sort_branch_bottom_up(self.list_continuous_line_points)
 
             self.sorted_points_list = sortedPointList
-            self.__divide_final_branch_and_analyse_lengths(sortedPointList, singlBranchImg)
+            self.__divide_final_branch_and_analyse_lengths(sortedPointList, self.singlBranchImg)
 
         elif len(self.branch_list)==2:
             branchPointList1, branchPointList2  = self.list_each_branch_points
@@ -339,14 +340,15 @@ class SkeltonizerContour:
 
             # blankImg = np.zeros_like(self.skeltonized)
             combined = singlBranchImg1 + singlBranchImg2
+            self.singlBranchImg = combined
 
             cv2.line(combined,(x1,y1), (x2,y2), 255, 1)
             # cv2.imshow("combined",combined)
             # cv2.waitKey(-1)
             self.sorted_points_list = totalSortedPoints
-            self.__divide_final_branch_and_analyse_lengths(totalSortedPoints, combined)
+            self.__divide_final_branch_and_analyse_lengths(totalSortedPoints, self.singlBranchImg)
 
-        else:
+        elif len(self.branch_list)!=0:
             ##### remove small branches to keep single branch only
             branchListObj = BranchList(self.skeltonized) 
             
@@ -379,6 +381,7 @@ class SkeltonizerContour:
                         allBranchSkeletonBinaryImg=self.skeltonized, branchNo=-1)
             
             self.sorted_points_list = branchFinalSingleLine.sortedPointList
+            self.singlBranchImg = branchFinalSingleLine.singlBranchImg
             
             self.__divide_final_branch_and_analyse_lengths(branchFinalSingleLine.sortedPointList, 
                                     branchFinalSingleLine.singlBranchImg)

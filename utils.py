@@ -56,7 +56,23 @@ def cropImg(img, tuple_xywh):
     x,y,w,h = tuple_xywh
     cropped = img[y:y+h+1, x:x+w+1]
     return cropped 
+
+
+def cropImg_with_margin(img, tuple_xywh, percent_margin= 5):
+    x,y,w,h = tuple_xywh
+    margin_h = int(h * percent_margin/100)  # 5 percent
+    margin_w = int(w * percent_margin/100)  # 5 percent
+
+    y1 = y - margin_h if y -margin_h>0 else 0
+    x1 = x - margin_w if x - margin_w>0 else 0
+    y2 = y + h + margin_h + 1
+    x2 = x + w + margin_w + 1  
+
     
+    cropped = img[y1:y2, x1:x2]
+    return cropped 
+
+
 
 def get_line_endpoints_intersections(skeletonized_img_np_array):
     whitepixels = np.argwhere(skeletonized_img_np_array==255)
@@ -115,3 +131,41 @@ def find_closest_n_points(contour, point, no_points=2):
     sortedPoints = sorted(contour, key=lambda x:find_dist(x, point))
     
     return sortedPoints[:no_points]
+
+def check_if_point_lies_xywh_box(point, xywh_bbox):
+    x1,y1,w,h = xywh_bbox
+    x,y = point
+    if x >= x1 and x <= (x1+w):
+        if y >=y1 and y<= y1+h:
+            return True
+
+    return False
+
+
+def sort_xywh_l_to_r(xywh_list):
+
+    ## 
+    y_list = [xywh[1] for xywh in xywh_list]
+    x_list = [xywh[0] for xywh in xywh_list]
+
+    avg_y = sum(y_list)/len(y_list)
+
+    top_half_indices = [i for i, y in enumerate(y_list) if y <=avg_y]
+    btm_half_indices = [i for i, y in enumerate(y_list) if i not in top_half_indices]
+
+    ## sort top and btm from left to right
+    top_half_indices_sorted_lr = sorted(top_half_indices, key= lambda x:x_list[x] )
+    btm_half_indices_sorted_lr = sorted(btm_half_indices, key= lambda x:x_list[x] )
+
+    final_sorted_list_indices = []
+    final_sorted_list_indices.extend(top_half_indices_sorted_lr)
+    final_sorted_list_indices.extend(btm_half_indices_sorted_lr)
+    
+    final_sorted_list = [xywh_list[i] for i in final_sorted_list_indices]
+    print(final_sorted_list)
+    return final_sorted_list
+
+##
+# l = [[9,5,10,20], [5,7,10,20], [2,5,10,20],[8,6,10,20],
+#      [9,20,10,20], [5,21,10,20], [2,25,10,20],[8,28,10,20]]
+# sort_xywh_l_to_r(l)

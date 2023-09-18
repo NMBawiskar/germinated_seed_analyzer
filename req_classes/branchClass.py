@@ -57,8 +57,11 @@ class BranchList(list):
         ### Sort branch adj dictionary by length of branchs
         sorteBranches = [branch for branch in self.dict_branch_adjascent_branches.keys()]
         sorteBranches = sorted(sorteBranches, key= lambda x:x.branchLength, reverse=True)
-
-        self.shortlistedBranches = [sorteBranches[0]]
+        if len(sorteBranches)>0 and sorteBranches:
+            self.shortlistedBranches = [sorteBranches[0]]
+        else:
+            self.shortlistedBranches = []
+            
         for branch in sorteBranches:
             adjBranchList = self.dict_branch_adjascent_branches[branch]
             if len(adjBranchList)>0:

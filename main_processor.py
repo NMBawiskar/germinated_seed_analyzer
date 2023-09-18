@@ -4,29 +4,42 @@ import numpy as np
 from req_classes.contour_processor import ContourProcessor, Seed
 from utils import *
 import csv
-from req_classes.dataAnalysis import BatchAnalysis, BatchAnalysisNew
-
+from req_classes.dataAnalysis import BatchAnalysisNew
+import json
+from proj_settings import MainSettings
 
 class Main_Processor:
-    def __init__(self) -> None:
-        self.n_segments_each_skeleton = 15           # divisions to make in each length (Increase this for finer results)
-        self.thres_avg_max_radicle_thickness = 13    # avg thickness to distinguish radicle (tune this if camera position changes)
-        self.dead_seed_max_length_r_h = 80
-        self.abnormal_seed_max_length_r_h =  130
-        self.normal_seed_max_length_r_h = 150
+    def __init__(self, mainUi) -> None:
+        self.mainUi = mainUi
+        # self.n_segments_each_skeleton = 15           # divisions to make in each length (Increase this for finer results)
+        # self.thres_avg_max_radicle_thickness = 13    # avg thickness to distinguish radicle (tune this if camera position changes)
+        # self.dead_seed_max_length_r_h = 80
+        # self.abnormal_seed_max_length_r_h =  130
+        # self.normal_seed_max_length_r_h = 150
 
-        self.weights_factor_growth_Pc = 0.7
-        self.weights_factor_uniformity_Pu = 0.3
+        # self.weights_factor_growth_Pc = 0.7
+        # self.weights_factor_uniformity_Pu = 0.3
         self.hsv_values_seed_heads = 0,127,0,255,0,34     
         self.hsv_values_seed = 0,179,0,255,0,162
         self.batchNumber = 1
         self.SeedObjList = []
         self.batchAnalser = None
+        self.settings_file_path = MainSettings.settings_json_file_path
+        self.dict_settings = {}
+        self.load_settings()
+
+    def load_settings(self):
+        with open(self.settings_file_path, 'r') as f:
+            data = f.read()
+            self.dict_settings = json.loads(data)
+            self.factor_pixel_to_cm = self.dict_settings['factor_pixel_to_cm']
             
     def process_main(self, img_path):
         imageName = os.path.basename(img_path)
         img = cv2.imread(img_path)
         result = img.copy()
+        self.load_settings()
+
 
         ############### INPUT parameters for tuning ##################
 
@@ -34,7 +47,16 @@ class Main_Processor:
 
 
         ############### 1. get seed head masks
-        
+        self.hsv_values_seed_heads = [self.dict_settings['hmin_head'], self.dict_settings['hmax_head'],
+                                      self.dict_settings['smin_head'], self.dict_settings['smax_head'],
+                                      self.dict_settings['vmin_head'], self.dict_settings['vmax_head'],
+                                      ]
+    
+        self.hsv_values_seed = [self.dict_settings['hmin_body'], self.dict_settings['hmax_body'],
+                                self.dict_settings['smin_body'], self.dict_settings['smax_body'],
+                                self.dict_settings['vmin_body'], self.dict_settings['vmax_body'],
+                                ]
+
         hsvMask_seed_heads = get_HSV_mask(img, hsv_values=self.hsv_values_seed_heads)    
         maskConcat = get_Concat_img_with_hsv_mask(img, hsvMask_seed_heads)
         # display_img('Result_heads', maskConcat)
@@ -80,13 +102,15 @@ class Main_Processor:
 
 
             comparison = np.hstack((croppedCntSeed, croppedCntHead, resultIntersection))
-            # display_img("Comparison", comparison)
-            # cv2.waitKey(-1)
-
+    
         contourProcessor.shortlisted_contours = final_shortListedCnts    
         result_cnt_drawn =contourProcessor.display_shortlisted_contours(imgColor=img)
         # display_img('drawnContours', result_cnt_drawn)
         contourProcessor.get_skeleton_img()
+
+        ### Sory xywh_list_final 
+
+        xywh_list_final = sort_xywh_l_to_r(xywh_list_final)
 
         ################## Creating SEED object list ##################
         self.SeedObjList = []
@@ -95,8 +119,8 @@ class Main_Processor:
             SeedObject = Seed(xywh=xywh_list_final[i], imgBinarySeed=hsvMask_seed, 
                 imgBinaryHeadOnly=contourProcessor_heads.binaryImgShortlistedCnt,
                 imgColor = contourProcessor.colorImg,
-                n_segments_each_skeleton = self.n_segments_each_skeleton,
-                thres_avg_max_radicle_thickness = self.thres_avg_max_radicle_thickness
+                n_segments_each_skeleton = self.mainUi.n_segments_each_skeleton,
+                thres_avg_max_radicle_thickness = self.mainUi.thres_avg_max_radicle_thickness
                 )
 
             self.SeedObjList.append(SeedObject)
@@ -109,12 +133,6 @@ class Main_Processor:
 
 
         ######################### Batch analysis
-
-        # batchAnalyser = BatchAnalysis(img_path=img_path, batchNumber=self.batchNumber, 
-        #                     list_hypercotyl_radicle_lengths=list_hypercotyl_radicle_lengths,
-        #                     dead_seed_max_length_r_h=self.dead_seed_max_length_r_h, abnormal_seed_max_length_r_h=self.abnormal_seed_max_length_r_h,
-        #                     normal_seed_max_length_r_h=self.normal_seed_max_length_r_h, weights_factor_growth_Pc=self.weights_factor_growth_Pc, 
-        #                     weights_factor_uniformity_Pu=self.weights_factor_uniformity_Pu)
 
         self.batchAnalyser = BatchAnalysisNew(img_path=img_path, batchNumber=self.batchNumber, seedObjList=self.SeedObjList)
 

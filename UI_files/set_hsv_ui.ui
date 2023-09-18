@@ -35,8 +35,8 @@
   <widget class="QSlider" name="slider_hmin">
    <property name="geometry">
     <rect>
-     <x>60</x>
-     <y>320</y>
+     <x>90</x>
+     <y>300</y>
      <width>331</width>
      <height>22</height>
     </rect>
@@ -48,8 +48,8 @@
   <widget class="QSlider" name="slider_hmax">
    <property name="geometry">
     <rect>
-     <x>60</x>
-     <y>360</y>
+     <x>90</x>
+     <y>350</y>
      <width>331</width>
      <height>22</height>
     </rect>
@@ -61,7 +61,7 @@
   <widget class="QSlider" name="slider_smin">
    <property name="geometry">
     <rect>
-     <x>60</x>
+     <x>90</x>
      <y>400</y>
      <width>331</width>
      <height>22</height>
@@ -74,7 +74,7 @@
   <widget class="QSlider" name="slider_smax">
    <property name="geometry">
     <rect>
-     <x>60</x>
+     <x>90</x>
      <y>450</y>
      <width>331</width>
      <height>22</height>
@@ -87,7 +87,7 @@
   <widget class="QSlider" name="slider_vmin">
    <property name="geometry">
     <rect>
-     <x>60</x>
+     <x>90</x>
      <y>500</y>
      <width>331</width>
      <height>22</height>
@@ -100,7 +100,7 @@
   <widget class="QSlider" name="slider_vmax">
    <property name="geometry">
     <rect>
-     <x>60</x>
+     <x>90</x>
      <y>550</y>
      <width>331</width>
      <height>22</height>
@@ -177,8 +177,8 @@
   <widget class="QLabel" name="label_hmin">
    <property name="geometry">
     <rect>
-     <x>430</x>
-     <y>320</y>
+     <x>460</x>
+     <y>300</y>
      <width>55</width>
      <height>21</height>
     </rect>
@@ -193,8 +193,8 @@
   <widget class="QLabel" name="label_hmax">
    <property name="geometry">
     <rect>
-     <x>430</x>
-     <y>360</y>
+     <x>460</x>
+     <y>350</y>
      <width>55</width>
      <height>21</height>
     </rect>
@@ -209,7 +209,7 @@
   <widget class="QLabel" name="label_smin">
    <property name="geometry">
     <rect>
-     <x>430</x>
+     <x>460</x>
      <y>400</y>
      <width>55</width>
      <height>21</height>
@@ -225,7 +225,7 @@
   <widget class="QLabel" name="label_smax">
    <property name="geometry">
     <rect>
-     <x>430</x>
+     <x>460</x>
      <y>450</y>
      <width>55</width>
      <height>21</height>
@@ -241,7 +241,7 @@
   <widget class="QLabel" name="label_vmin">
    <property name="geometry">
     <rect>
-     <x>430</x>
+     <x>460</x>
      <y>500</y>
      <width>55</width>
      <height>21</height>
@@ -257,8 +257,8 @@
   <widget class="QLabel" name="label_vmax">
    <property name="geometry">
     <rect>
-     <x>430</x>
-     <y>540</y>
+     <x>460</x>
+     <y>550</y>
      <width>55</width>
      <height>21</height>
     </rect>
@@ -284,6 +284,102 @@
    </property>
    <property name="text">
     <string>Upload Image</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_hmin_2">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>300</y>
+     <width>55</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+   </property>
+   <property name="text">
+    <string>H min</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_hmin_3">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>350</y>
+     <width>55</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+   </property>
+   <property name="text">
+    <string>H max</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_hmin_4">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>400</y>
+     <width>55</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+   </property>
+   <property name="text">
+    <string>S min</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_hmin_5">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>450</y>
+     <width>55</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+   </property>
+   <property name="text">
+    <string>S max</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_hmin_6">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>500</y>
+     <width>55</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+   </property>
+   <property name="text">
+    <string>V max</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_hmin_7">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>550</y>
+     <width>55</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 10pt &quot;Segoe UI&quot;;</string>
+   </property>
+   <property name="text">
+    <string>V max</string>
    </property>
   </widget>
  </widget>

@@ -1,24 +1,29 @@
 from PyQt5 import QtWidgets, QtMultimedia, QtCore,QtGui
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import Qt
-import sys
-import utils_pyqt5 as ut
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QWidget, QFileDialog
-from main_processor import Main_Processor
-import os
-import csv
-from req_classes.settings_cls import GlobalSettings
-from req_classes.setHSVclass import SetHSV
-from datetime import datetime
-import numpy as np
-import pandas as pd
-from class_photo_viewer import PhotoViewer
-from req_classes.pixel_to_cm import get_pixel_to_cm
-from req_classes.seedEditor import SeedEditor
+from PyQt5.QtWidgets import QApplication
+
+import sys
 import cv2
 import json
 import traceback
+import os
+import csv
+import numpy as np
+import pandas as pd
+import utils_pyqt5 as ut
+from utils import check_if_point_lies_xywh_box
+from main_processor import Main_Processor
+from req_classes.settings_cls import GlobalSettings
+from req_classes.setting_pixel_cm import CalibrationSettings
+from req_classes.setHSVclass import SetHSV
+from datetime import datetime
+from class_photo_viewer import PhotoViewer
+from req_classes.pixel_to_cm import get_pixel_to_cm
+from req_classes.seedEditor import SeedEditor
+from utils_pyqt5 import showdialog
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -37,56 +42,76 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.viewer = PhotoViewer(self)
         self.h_layout_img.addWidget(self.viewer)
+        self.viewer.mainUiObj = self
 
         self.new_screen_w = sizeObject.width()
         self.new_screen_h = sizeObject.height()
         
-          
-        # menubar = QtWidgets.QMenuBar()
+        
+#_________________ ADD MENUS 'FILE' AND 'CONFIGURATION'______________________________________________________________
         
         filemenu = self.menubar.addMenu('File')
         
         filemenu.addAction('Open Folder', self.browse_input_folder)
         filemenu.addAction('Inputs', self.give_inputs)
       
-
         menuConfig = self.menubar.addMenu('Configuration')
         menuConfig.addAction("Import Configurations", self.import_settings)
         menuConfig.addAction("Export Settings", self.export_settings)
         menuConfig.addAction('Change settings', self.change_settings)
         menuConfig.addAction("Set HSV values",self.set_hsv_values)
-        menuConfig.addAction("Set caliberation",self.set_pixel_cm_values)
+        menuConfig.addAction("Set calibration",self.set_pixel_cm_values)
         menuConfig.addAction("Restore Defaults",self.restore_default_settings)
-
-
-
-        filemenu.setStyleSheet("""background-color: None;
-                            font: 63 10pt "Segoe UI";
-                            border-top: none;
-                            border-left:none;
-                            border-bottom:none;
-                            border-left:3px solid  
-                            rgb(44,205,112);""")
+        
+        #___ EDIT STYLES ______________________________________________________________
+        
+        background_color = self.palette().color(QtGui.QPalette.Background).name()
+        selected_text_color = "white"
+        # menu_color = "rgb(0, 153, 255)" # Replace with your desired menu color
+        self.menuBar().setStyleSheet(f"background-color: {background_color};")
+        
+        menu_style = f"QMenu::item {{ background-color: {background_color}; }}" \
+                     f"QMenu::item:selected {{ color: {selected_text_color}; }}" # Style for selected item
+        
+        filemenu.setStyleSheet(menu_style)
+        menuConfig.setStyleSheet(menu_style)
+        
+#_________________________________________________________________________________________________________________
+        
+        
+        
+        
+        # filemenu.setStyleSheet("""background-color: None;
+        #                     font: 63 10pt "Segoe UI";
+        #                     border-top: none;
+        #                     border-left:none;
+        #                     border-bottom:none;
+        #                     border-left:3px solid  
+        #                     rgb(44,205,112);""")
         
         self.input_folder_path = None
         self.imagePaths = []
-        self.batchAnalyzerObjList = []
+        # self.batchAnalyzerObjList = []
+
 
         self.currentImgIndex = 0
+        self.currentResultImg = None
 
         ################ Inputs
         self.n_segments_each_skeleton = 15           # divisions to make in each length (Increase this for finer results)
         self.thres_avg_max_radicle_thickness = 13    # avg thickness to distinguish radicle (tune this if camera position changes)
-        self.dead_seed_max_length_r_h = 80
-        self.abnormal_seed_max_length_r_h =  130
-        self.normal_seed_max_length_r_h = 150
-        self.average_seed_total_length = 500
+        self.dead_seed_max_length_r_h = 2.0
+        self.abnormal_seed_max_length_r_h =  3.25
+        self.normal_seed_max_length_r_h = 3.75
+        self.user_given_seedling_length = 12.5
         self.list_hypercotyl_radicle_lengths = []
 
         self.weights_factor_growth_Pc = 0.7
         self.weights_factor_uniformity_Pu = 0.3
+        self.p_h = 0.10
+        self.p_r = 0.90
 
-        self.pixel_per_cm = 40
+        self.pixel_per_cm = 72
 
         self.hsv_values_seed_heads = [0,127,0,255,0,34]     ###### Default values do not change here
         self.hsv_values_seed = [0,179,0,255,0,162]          ###### Default values do not change here
@@ -115,6 +140,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.count_abnormal_seeds = 0
         self.count_dead_seeds = 0
         self.count_germinated_seeds = 0
+        self.batchAnalyzerObj = None
 
         self.PROJECT_DIR = os.path.abspath(os.path.dirname(__file__))
         self.settings_dir = os.path.join(self.PROJECT_DIR, "settings")
@@ -126,15 +152,25 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings_json_file_path =  os.path.join(self.settings_dir, "settings.json")
         # self.settings_hsv_path = os.path.join(self.settings_dir, "settings_hsv.csv")
 
-        self.mainProcessor = Main_Processor()
-        self.mainProcessor.hsv_values_seed = self.hsv_values_seed
-        self.mainProcessor.hsv_values_seed_heads = self.hsv_values_seed_heads
-
         self.list_inputs = [self.dead_seed_max_length_r_h, self.abnormal_seed_max_length_r_h, 
                     self.normal_seed_max_length_r_h, self.n_segments_each_skeleton,
                     self.weights_factor_growth_Pc, self.weights_factor_uniformity_Pu]
         
-
+        self.seed_editor_window_shown=False
+        
+        '''
+        JA TEM UM OBJETO PEGANDO OS DADOS DO ARQUIVO DE CONFIGURAÇÃO...
+        ENTÃO A MAIORIA DAS COISAS ACIMA DÁ PRA DELETAR.
+        
+        APARENTEMENTE ESSA PARTE DO CÓDICO CRIA UM ARQUIVO DE CONFIGURAÇÃO.
+        E ISSO SE REPETE EM def restore_default_settings(self):...
+        ONDE OUTRO ARQUIVO É CRIADO, IDENTICO A ESSE ABAIXO.
+        
+        SE PODE RODAR def read_settings(self): NO COMEÇO DO SCRIPT, INVÉS DE DIZER TUDO NOVAMENTE.
+        
+        EXPERIMENTO: COMENTEI O def read_settings(self): INTEIRO, E NÃO MUDOU NADA NO PROGRAMA.
+        
+        '''
         self.dict_settings = {                            
                             "dead_seed_max_length": self.dead_seed_max_length_r_h, 
                             "abnormal_seed_max_length":self.abnormal_seed_max_length_r_h, 
@@ -142,8 +178,10 @@ class MainWindow(QtWidgets.QMainWindow):
                             "no_of_segments_each_skeleton":self.n_segments_each_skeleton,
                             "weights_factor_growth_Pc":self.weights_factor_growth_Pc, 
                             "weights_factor_uniformity_Pu":self.weights_factor_uniformity_Pu,
+                            "ph" : self.p_h,
+                            "pr" : self.p_r,
                             "thresh_avg_max_radicle_thickness":self.thres_avg_max_radicle_thickness,
-                            "average_seed_total_length":self.average_seed_total_length,
+                            "user_given_seedling_length":self.user_given_seedling_length,
                             'hmin_head':self.hsv_values_seed_heads[0],
                             'hmax_head':self.hsv_values_seed_heads[1],
                             'smin_head':self.hsv_values_seed_heads[2],
@@ -160,20 +198,24 @@ class MainWindow(QtWidgets.QMainWindow):
                             
                             }
 
-        self.list_inputs_names = ["dead_seed_max_length", "abnormal_seed_max_length", 
-                    "normal_seed_max_length", "no_of_segments_each_skeleton", 
-                    "weights_factor_growth_Pc", "weights_factor_uniformity_Pu"]
-
 
         self.list_hsv_keys = ['hmin','hmax','smin','smax','vmin','vmax',]
         list_dir = [self.settings_dir, self.output_dir]
         self.create_dirs(list_dir)
         self.create_settings_if_not_present()
+
+        self.list_inputs_names = ["dead_seed_max_length", "abnormal_seed_max_length", 
+                    "normal_seed_max_length", "no_of_segments_each_skeleton", 
+                    "weights_factor_growth_Pc", "weights_factor_uniformity_Pu"]
+
+        
+        self.mainProcessor = Main_Processor(mainUi=self)
+        self.mainProcessor.hsv_values_seed = self.hsv_values_seed
+        self.mainProcessor.hsv_values_seed_heads = self.hsv_values_seed_heads
+        self.mainProcessor.dict_settings = self.dict_settings
+
         self.read_settings()
-        # customCursor = QtGui.QPixmap((32,32))
-        # # customCursor.fill()
-
-
+       
         # self.setCursor()
 
         imgLogo = cv2.imread('resources/ProSeedling_logo_cropped.png')
@@ -185,14 +227,16 @@ class MainWindow(QtWidgets.QMainWindow):
         ################ Inputs
         self.n_segments_each_skeleton = 15           # divisions to make in each length (Increase this for finer results)
         self.thres_avg_max_radicle_thickness = 13    # avg thickness to distinguish radicle (tune this if camera position changes)
-        self.dead_seed_max_length_r_h = 80
-        self.abnormal_seed_max_length_r_h =  130
-        self.normal_seed_max_length_r_h = 150
-        self.average_seed_total_length = 500
+        self.dead_seed_max_length_r_h = 2.0
+        self.abnormal_seed_max_length_r_h =  3.25
+        self.normal_seed_max_length_r_h = 3.75
+        self.user_given_seedling_length = 12.5
         self.list_hypercotyl_radicle_lengths = []
 
         self.weights_factor_growth_Pc = 0.7
         self.weights_factor_uniformity_Pu = 0.3
+        self.p_h = 0.10
+        self.p_r = 0.90
 
         self.pixel_per_cm = 40
 
@@ -206,7 +250,7 @@ class MainWindow(QtWidgets.QMainWindow):
                             "weights_factor_growth_Pc":self.weights_factor_growth_Pc, 
                             "weights_factor_uniformity_Pu":self.weights_factor_uniformity_Pu,
                             "thresh_avg_max_radicle_thickness":self.thres_avg_max_radicle_thickness,
-                            "average_seed_total_length":self.average_seed_total_length,
+                            "user_given_seedling_length":self.user_given_seedling_length,
                             'hmin_head':self.hsv_values_seed_heads[0],
                             'hmax_head':self.hsv_values_seed_heads[1],
                             'smin_head':self.hsv_values_seed_heads[2],
@@ -219,35 +263,25 @@ class MainWindow(QtWidgets.QMainWindow):
                             'smax_body':self.hsv_values_seed[3],
                             'vmin_body':self.hsv_values_seed[4],
                             'vmax_body':self.hsv_values_seed[5],
-                            'factor_pixel_to_cm':self.pixel_per_cm
+                            'factor_pixel_to_cm':self.pixel_per_cm,
+                            "ph" : self.p_h,
+                            "pr" : self.p_r,
                             
                             }
 
         self.save_settings_to_file()
         ut.showdialog("Default settings restored successfully!!!")
+        self.process_img_and_display_results()
 
     def set_pixel_cm_values(self):
         """Function to upload caliberation image"""
 
         # 1. upload image with square box printed over it
         # 2. extract square and 
-        qWid = QWidget()
-        print("Select measurements caliberation image")
-        filepath, _ = QFileDialog.getOpenFileName(qWid, 'Select measurements caliberation image','',"Image files (*.jpg)")
-        if not os.path.exists(filepath):
-            ut.showdialog("Please select a file")
-        else:
-            img = cv2.imread(filepath)
-            
-            self.pixel_per_cm = get_pixel_to_cm(img)
 
-            print("Pixels per centimeter is :", self.pixel_per_cm)
-            # cv2.imshow('img', img)
-            self.dict_settings['factor_pixel_to_cm'] = self.pixel_per_cm
-            # cv2.waitKey(-1)
-            print("self.dict_settings['factor_pixel_to_cm']", self.dict_settings['factor_pixel_to_cm'])
-            ut.showdialog(f"Calculated pixel per cm = {self.pixel_per_cm} \n Saved in settings. ")
-            self.save_settings_to_file()
+        self.window = CalibrationSettings(self)
+        self.window.show()
+        self.process_img_and_display_results()
 
     def import_settings(self):
         
@@ -284,6 +318,18 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             ut.showdialog("Please select file to export settings.")
     
+
+
+    def show_seed_editor_window(self):
+        try:
+            self.window = self.seedEditorObj
+            self.window.show()
+            print("window shown")
+        except Exception as e:
+            print(traceback.format_exc())
+        
+
+
     def get_selected_row(self):
         index = self.tableView_res.selectedIndexes()[0]
         # id_us = int(self.tableView_res.model().data(index).toString())
@@ -295,32 +341,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.seedEditorObj.setSeedObj(seedObjSelected)
         seedIndex=index.row()
         self.seedEditorObj.setSeedIndex(seedIndex)
+        self.highlight_seed_with_rect(seedObjSelected)
         
-        # ut.show_cv2_img_on_label_obj(uiObj= self.seedEditorObj.label_img_seed ,img = seedObjSelected.cropped_seed_color)
-        # try:
-        #     self.seedEditorObj.update_values()
-        # except Exception as e:
-        #     print(traceback.format_exc())
-        try:
-            self.window = self.seedEditorObj
-            self.window.show()
-            print("window shown")
-        except Exception as e:
-            print(traceback.format_exc())
-        
-        
-
-        # cv2.imshow(f"Seed {index.row()}",self.mainProcessor.SeedObjList[index.row()].cropped_seed_color)
-        # cv2.waitKey(-1)
-        # indexes = self.tableView_res.selectionModel().selectedRows()
-        # for index in sorted(indexes):
-        #     print('Row %d is selected' % index.row())
+        self.show_seed_editor_window()
 
     def summarize_results(self):
         """"""
         print("Recalculating batchObj after edits...")
-        batchAnalyserObj = self.batchAnalyzerObjList[self.currentImgIndex]
-        batchAnalyserObj.recalculate_all_metrics()
+        # batchAnalyserObj = self.batchAnalyzerObjList[self.currentImgIndex]
+        self.batchAnalyzerObj.recalculate_all_metrics()
 
             
         self.show_analyzed_results()
@@ -344,27 +373,19 @@ class MainWindow(QtWidgets.QMainWindow):
             self.dict_settings = json.loads(data)
                 
 
-        # print('dict_values',dict_values)
+        self.n_segments_each_skeleton = self.dict_settings["no_of_segments_each_skeleton"]
+        self.thres_avg_max_radicle_thickness= self.dict_settings['thresh_avg_max_radicle_thickness']
+        
         self.dead_seed_max_length_r_h = self.dict_settings['dead_seed_max_length']
         self.abnormal_seed_max_length_r_h = self.dict_settings['abnormal_seed_max_length']
         self.normal_seed_max_length_r_h = self.dict_settings["normal_seed_max_length"]
-        self.n_segments_each_skeleton = self.dict_settings["no_of_segments_each_skeleton"]
+        self.user_given_seedling_length = self.dict_settings['user_given_seedling_length']
+
         self.weights_factor_growth_Pc = self.dict_settings["weights_factor_growth_Pc"]
         self.weights_factor_uniformity_Pu = self.dict_settings["weights_factor_uniformity_Pu"]
-
-        
-        # with open(self.settings_hsv_path, 'r') as f:
-        #     reader = csv.reader(f)
-            
-        #     for key, head_body,value in reader:
-                
-        #         if head_body=='head':
-        #             object_to_save = self.hsv_values_seed_heads
-        #         elif head_body=='body':
-        #             object_to_save = self.hsv_values_seed
-                
-        #         index_value = self.list_hsv_keys.index(key)
-        #         object_to_save[index_value] = int(value)
+        self.p_h = self.dict_settings['ph']
+        self.p_r = self.dict_settings['pr']
+     
         
         self.apply_new_hsv_values()
                        
@@ -391,7 +412,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.batchNo, done3 = inputDialog.getInt(
            self, 'Inputs', 'Enter Lot no:') 
         self.n_seeds, done4 = inputDialog.getInt(
-           self, 'Inputs',  'Enter no of seeds :', value=1, min=1)
+           self, 'Inputs',  'Enter no of seeds :', value=20, min=1)
         
         if self.n_seeds < 1:
             ut.showdialog("No of seeds cannot be less than 1. Please select proper value.")
@@ -410,15 +431,7 @@ class MainWindow(QtWidgets.QMainWindow):
     
         except Exception as e:
             print(e)
-        # with open(self.settings_file_path, 'a+', newline="") as f:
-        #     csvWriter = csv.writer(f)                    
-        #     print("self.dead_seed_max_length_r_h", self.dead_seed_max_length_r_h)
-        #     self.list_inputs = [self.dead_seed_max_length_r_h, self.abnormal_seed_max_length_r_h, 
-        #             self.normal_seed_max_length_r_h, self.n_segments_each_skeleton, 
-        #             self.weights_factor_growth_Pc, self.weights_factor_uniformity_Pu]
-        #     for i in range(len(self.list_inputs)):
-        #         list_each = [self.list_inputs_names[i], self.list_inputs[i]]
-        #         csvWriter.writerow(list_each)
+      
 
         with open(self.settings_json_file_path,'w+') as f:
             json.dump(self.dict_settings, f)
@@ -440,10 +453,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 csvWriter.writerow(list_each)
       
     def create_settings_if_not_present(self):
-        # if not os.path.exists(self.settings_file_path):
-        #     self.save_settings_to_file()
-        # if not os.path.exists(self.settings_hsv_path):
-        #     self.save_hsv_settings_to_file()
         if not os.path.exists(self.settings_json_file_path):
             with open(self.settings_json_file_path,'w+') as f:
                 json.dump(self.dict_settings, f)
@@ -462,7 +471,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.input_folder_path = QFileDialog.getExistingDirectory(qWid, 'Select folder', '')
         self.load_images()
         if len(self.imagePaths)>0:
-            ## NOTE: uncomment this 
+            
             self.give_inputs()
 
             self.output_dir = os.path.join(self.input_folder_path, str(self.batchNo))
@@ -474,10 +483,12 @@ class MainWindow(QtWidgets.QMainWindow):
             os.makedirs(self.output_images_dir, exist_ok=True)
 
 
+            self.setCursor(Qt.CursorShape.BusyCursor)
             self.process_img_and_display_results()
-            # self.showImg()
-            # self.output_dir = self.input_folder_path
-            # self.process_img_and_display_results()
+            imgNo = 1
+            total_images = len(self.imagePaths)
+            self.label_img_no.setText(f"{imgNo} / {total_images}")
+            self.setCursor(Qt.CursorShape.ArrowCursor)
         else:
             ut.showdialog("This folder does not contain any image file. Please choose another one..")
 
@@ -493,6 +504,24 @@ class MainWindow(QtWidgets.QMainWindow):
                 validated=False
         
         return validated
+
+
+    def update_result_img(self):
+        imgPath = self.imagePaths[self.currentImgIndex]
+        updatedResImg = cv2.imread(imgPath)
+        if len(self.mainProcessor.SeedObjList)>0:
+            for seedObj in self.mainProcessor.SeedObjList:
+                x1, y1, w, h = seedObj.xywh
+                
+
+
+                updatedResImg[y1:y1+h+1, x1:x1+w+1] = seedObj.cropped_seed_color
+
+        updatedResImg = cv2.cvtColor(updatedResImg, cv2.COLOR_BGR2RGB)
+        
+        self.showResultImg(updatedResImg)
+
+
 
     def save_results_to_csv(self):
         current_file_name = os.path.basename(self.imagePaths[self.currentImgIndex])
@@ -511,42 +540,46 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as e:
             pass
         
-        batchAnalyserObj = self.batchAnalyzerObjList[self.currentImgIndex]
-        
-        with open(output_result_csv_path, 'a+', newline="") as f:
-            writer = csv.writer(f)
-            line0 = ['SEP=,']
-            line1 = ["ProSeedling Software"]
-            line2 = ["Cultivar", "Lot number", "Number of seeds", "Analyst", "Date"]
-            line3 = [self.cultivatorName, self.batchNo, self.n_seeds, self.analystsName, date_str]
-            line4 = []
-            line5 = ["Seedling", 'hypocotyl', 'root', 'Total length', 'hypocotyl/root ratio']
-            line_list1 = [line0, line1, line2, line3, line4, line5]
-            writer.writerows(line_list1)
+        # batchAnalyserObj = self.batchAnalyzerObjList[self.currentImgIndex]
+        try:        
+            with open(output_result_csv_path, 'a+', newline="") as f:
+                writer = csv.writer(f)
+                line0 = ['SEP=,']
+                line1 = ["ProSeedling Software"]
+                line2 = ["Cultivar", "Lot number", "Number of seeds", "Analyst", "Date"]
+                line3 = [self.cultivatorName, self.batchNo, self.n_seeds, self.analystsName, date_str]
+                line4 = []
+                line5 = ["Seedling", 'hypocotyl', 'root', 'Total length', 'hypocotyl/root ratio']
+                line_list1 = [line0, line1, line2, line3, line4, line5]
+                writer.writerows(line_list1)
+                
+                for line in self.data_each_seed:
+                    writer.writerow(line)
             
-            for line in self.data_each_seed:
-                writer.writerow(line)
-         
-            lineBlank = []
-            line6 = ['Vigor Index', 'Growth', 'Uniformity', 'Germination', 'Average length', 'Standard deviation',
-                        'Normal Seedlings', 'Abnormal Seedlings', 'Non germinated seeds']
-            line7 = [self.seed_vigor_index, self.growth, self.uniformity, f"{self.germination_percent} %",self.avg_length, self.std_deviation,
-                     self.count_germinated_seeds, self.count_abnormal_seeds, self.count_dead_seeds]
+                lineBlank = []
+                line6 = ['Vigor Index', 'Growth', 'Uniformity', 'Germination', 'Average length', 'Standard deviation',
+                            'Normal Seedlings', 'Abnormal Seedlings', 'Non germinated seeds']
+                line7 = [self.seed_vigor_index, self.growth, self.uniformity, f"{self.germination_percent} %",self.avg_length, self.std_deviation,
+                        self.count_germinated_seeds, self.count_abnormal_seeds, self.count_dead_seeds]
 
-            writer.writerows([lineBlank, line6, line7])
-            
-            
-            # data_pandas = pd.DataFrame([data], columns = ['Seedling No', 'Hypercotyl length', 'Radicle length', 'Total length'])
+                writer.writerows([lineBlank, line6, line7])
+                
+                
+                # data_pandas = pd.DataFrame([data], columns = ['Seedling No', 'Hypercotyl length', 'Radicle length', 'Total length'])
 
-            self.model = TableModel(self.data_each_seed)
-            self.model.columns=['Seedling', 'Hypocotyl (cm)', 'Root (cm)', 'Total (cm)', 'Hypocotyl/root ratio']
-            self.tableView_res.setModel(self.model)
+                self.model = TableModel(self.data_each_seed)
+                self.model.columns=['Seedling', 'Hypocotyl (cm)', 'Root (cm)', 'Total (cm)', 'Hypocotyl/root ratio']
+                self.tableView_res.setModel(self.model)
+                self.tableView_res.resizeColumnsToContents()
+        except PermissionError as e:
+            showdialog('Please close the opened .csv file !! Changes would not be saved...')
+
 
     def show_analyzed_results(self):
-        batchAnalyserObj = self.batchAnalyzerObjList[self.currentImgIndex]
-        if batchAnalyserObj is not None:
+        # batchAnalyserObj = self.batchAnalyzerObjList[self.currentImgIndex]
+        if self.batchAnalyzerObj is not None:
             self.data_each_seed = []
-            for i, seedObj in enumerate(batchAnalyserObj.seedObjList):
+            for i, seedObj in enumerate(self.batchAnalyzerObj.seedObjList):
                 line = [i+1, seedObj.hyperCotyl_length_cm, seedObj.radicle_length_cm, seedObj.total_length_cm, seedObj.ratio_h_root]
                 self.data_each_seed.append(line)
 
@@ -554,27 +587,27 @@ class MainWindow(QtWidgets.QMainWindow):
                 # total_lengths+= seedObj.total_length_pixels
                 # list_total_lengths.append(seedObj.total_length_pixels)
             
-            self.std_deviation = batchAnalyserObj.std_deviation
-            self.growth = round(batchAnalyserObj.growth,2)
+            self.std_deviation = self.batchAnalyzerObj.std_deviation
+            self.growth = int(self.batchAnalyzerObj.growth)
 
            
-            self.penalization = round(batchAnalyserObj.penalization,2)
-            self.uniformity = round(batchAnalyserObj.uniformity,2)
-            self.seed_vigor_index = round(batchAnalyserObj.seed_vigor_index,2)
+            self.penalization = round(self.batchAnalyzerObj.penalization,2)
+            self.uniformity = int(self.batchAnalyzerObj.uniformity)
+            self.seed_vigor_index = int(self.batchAnalyzerObj.seed_vigor_index)
 
-            self.count_abnormal_seeds = batchAnalyserObj.abnormal_seed_count
-            self.count_dead_seeds = batchAnalyserObj.dead_seed_count
-            self.count_germinated_seeds = batchAnalyserObj.germinated_seed_count
-            self.germination_percent = round(batchAnalyserObj.germination_percent,2)
+            self.count_abnormal_seeds = self.batchAnalyzerObj.abnormal_seed_count
+            self.count_dead_seeds = self.batchAnalyzerObj.dead_seed_count
+            self.count_germinated_seeds = self.batchAnalyzerObj.germinated_seed_count
+            self.germination_percent = round(self.batchAnalyzerObj.germination_percent,2)
             
             self.label_growth.setText(str(self.growth))
             self.label_sd.setText(str(self.std_deviation))
             self.label_uniformity.setText(str(self.uniformity))
             self.label_seedvigor.setText(str(self.seed_vigor_index))
-            self.label_germination.setText(f"{round(batchAnalyserObj.germination_percent,2)} %")
-            self.label_avg_hypocotyl.setText(str(batchAnalyserObj.avg_hypocotyl_length))
-            self.label_avg_root.setText(str(batchAnalyserObj.avg_root_length))
-            self.label_avg_total_length.setText(str(batchAnalyserObj.avg_total_length))
+            self.label_germination.setText(f"{round(self.batchAnalyzerObj.germination_percent,2)} %")
+            self.label_avg_hypocotyl.setText(str(self.batchAnalyzerObj.avg_hypocotyl_length_cm))
+            self.label_avg_root.setText(str(self.batchAnalyzerObj.avg_root_length_cm))
+            self.label_avg_total_length.setText(str(self.batchAnalyzerObj.avg_total_length_cm))
 
             self.model = TableModel(self.data_each_seed)
             self.model.columns=['Seedling', 'Hypocotyl', 'Root', 'Total', 'Hypocotyl/root ratio']
@@ -582,57 +615,50 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def process_img_and_display_results(self):
-        
-        if self.check_if_all_valid_inputs():
+        if len(self.imagePaths)> 0:
+            self.setCursor(Qt.CursorShape.BusyCursor)
+            if self.check_if_all_valid_inputs():
 
-            ## Process for main
-            imgPath = self.imagePaths[self.currentImgIndex]
-            self.list_hypercotyl_radicle_lengths, colorImg, batchAnalyzerObj = self.mainProcessor.process_main(imgPath)
-            self.batchAnalyzerObjList[self.currentImgIndex] = batchAnalyzerObj
+                ## Process for main
+                imgPath = self.imagePaths[self.currentImgIndex]
+                self.list_hypercotyl_radicle_lengths, colorImg, self.batchAnalyzerObj = self.mainProcessor.process_main(imgPath)
+                
+
+                self.std_deviation = self.batchAnalyzerObj.std_deviation
+                self.growth = round(self.batchAnalyzerObj.growth,2)
 
 
-            self.std_deviation = batchAnalyzerObj.std_deviation
-            self.growth = round(batchAnalyzerObj.growth,2)
+                ## save output image
+                try:
+                    os.makedirs(self.output_images_dir, exist_ok=True)
+                except Exception as e:
+                    pass
+                output_img_path = os.path.join(self.output_images_dir, os.path.basename(self.imagePaths[self.currentImgIndex]))
+                cv2.imwrite(output_img_path, colorImg)
+                self.currentResultImg = cv2.cvtColor(colorImg, cv2.COLOR_BGR2RGB)
+                self.showResultImg(self.currentResultImg)
+                
+            total_lengths = 0
+            list_total_lengths = []
+            self.data_each_seed = []
 
-
-            ## save output image
-            try:
-                os.makedirs(self.output_images_dir, exist_ok=True)
-            except Exception as e:
-                pass
-            output_img_path = os.path.join(self.output_images_dir, os.path.basename(self.imagePaths[self.currentImgIndex]))
-            cv2.imwrite(output_img_path, colorImg)
-
-            self.showResultImg(colorImg)
             
-        total_lengths = 0
-        list_total_lengths = []
-        self.data_each_seed = []
+            for i, seedObj in enumerate(self.batchAnalyzerObj.seedObjList):
+                line = [i+1, seedObj.hyperCotyl_length_cm, seedObj.radicle_length_cm, seedObj.total_length_cm, seedObj.ratio_h_root]
+                self.data_each_seed.append(line)
 
-        # for i in range(len(self.list_hypercotyl_radicle_lengths)):
-        #     hyp, rad = self.list_hypercotyl_radicle_lengths[i]
-        #     seed_length = hyp + rad
-        #     ratio_h_root = round(hyp/rad, 2) if rad>0 else 'NA'
-        #     line = [i+1, hyp, rad, seed_length,  ratio_h_root]
+                # writer.writerow(line)
+                total_lengths+= seedObj.total_length_pixels
+                list_total_lengths.append(seedObj.total_length_pixels)
+            
+            
+            self.avg_length = total_lengths / self.n_seeds
+            total_length_array = np.array(list_total_lengths)       
+            
 
-        for i, seedObj in enumerate(batchAnalyzerObj.seedObjList):
-            line = [i+1, seedObj.hyperCotyl_length_cm, seedObj.radicle_length_cm, seedObj.total_length_cm, seedObj.ratio_h_root]
-            self.data_each_seed.append(line)
-
-            # writer.writerow(line)
-            total_lengths+= seedObj.total_length_pixels
-            list_total_lengths.append(seedObj.total_length_pixels)
-        
-        
-        self.avg_length = total_lengths / self.n_seeds
-        total_length_array = np.array(list_total_lengths)
-        
-        
-
-        self.show_analyzed_results()
-
-
-        self.save_results_to_csv()
+            self.show_analyzed_results()
+            self.save_results_to_csv()
+            self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def loadNextImg(self):
         if self.currentImgIndex<len(self.imagePaths)-1:
@@ -653,7 +679,7 @@ class MainWindow(QtWidgets.QMainWindow):
             
             self.imagePaths = [os.path.join(self.input_folder_path, fileName) for fileName in files if fileName.split(".")[-1].lower() in imgExtensions]
 
-        self.batchAnalyzerObjList = [None] *len(self.imagePaths)
+        # self.batchAnalyzerObjList = [None] *len(self.imagePaths)
 
     def showImg(self):
 
@@ -698,6 +724,58 @@ class MainWindow(QtWidgets.QMainWindow):
     def close_win(self):
         self.close()
 
+
+    def highlight_seed_with_rect(self, seedobj):
+        x1,y1,w,h = seedobj.xywh
+        ### draw_bouding_rect 
+        colorImgCopy = self.currentResultImg.copy()
+        cv2.rectangle(colorImgCopy, (x1,y1), (x1+w,y1+h), (255,0,0), 15)
+        colorImgCopy = cv2.cvtColor(colorImgCopy, cv2.COLOR_BGR2RGB)
+        self.showResultImg(colorImgCopy)
+
+
+
+    def check_position_in_seed(self, mouse_loc):
+        # print('position in seed', mouse_loc)
+        x_mouse, y_mouse = mouse_loc
+
+        ## Recalculate correct position for image (pixmap scaled)..
+        windowH, windowW = self.viewer.height(), self.viewer.width()
+        # print("windowH, windowW",windowH, windowW)
+        if self.currentResultImg is not None:
+            imgSize = self.currentResultImg.shape
+            # print("imgSize", imgSize)
+            hImg, wImg = imgSize[:2]
+            if self.viewer.factor is not None:
+                scaleFactor = self.viewer.factor
+                resizedImgH, resizedImgW = int(hImg*scaleFactor), int(wImg * scaleFactor)
+            
+                diff_x = windowW - resizedImgW
+                diff_y = windowH - resizedImgH
+                dx_half = diff_x / 2
+                dy_half = diff_y / 2
+                            
+                x_in_img = x_mouse - dx_half
+                y_in_img = y_mouse - dy_half
+            
+                transformedMousePos = [int(x_in_img/scaleFactor), int(y_in_img/scaleFactor)]
+                print("transformedMousePos", transformedMousePos)
+
+            for i, seedobj in enumerate(self.mainProcessor.SeedObjList):
+                # print(i, seedobj.xywh)
+                result_in = check_if_point_lies_xywh_box(transformedMousePos, seedobj.xywh)
+                if result_in:
+                    
+                    self.seedEditorObj.setSeedObj(seedobj)
+                    seedIndex= i +1
+                    self.seedEditorObj.setSeedIndex(seedIndex)
+                    # print('selected seed crop size',seedobj.xywh)
+
+                    self.highlight_seed_with_rect(seedobj)
+                    self.tableView_res.selectRow(i)
+    
+                    self.show_seed_editor_window()
+                    break
 
 class TableModel(QtCore.QAbstractTableModel):
     def __init__(self, data):

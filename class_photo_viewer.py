@@ -1,4 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import Qt
 class mouseMove(QtWidgets.QGraphicsSceneEvent):
     def __init_subclass__(cls) -> None:
         return super().__init_subclass__()
@@ -24,6 +25,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         self._scene = QtWidgets.QGraphicsScene(self)
         self._photo = QtWidgets.QGraphicsPixmapItem()
         self._scene.addItem(self._photo)
+        self.mainUiObj = None
         self.setScene(self._scene)
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
@@ -32,7 +34,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(30, 30, 30)))
         self.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.setMouseTracking(True)
-        
+        self.factor = None
         # self._scene.mouseMoveEvent()
 
     def hasPhoto(self):
@@ -50,6 +52,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
                 factor = min(viewrect.width() / scenerect.width(),
                              viewrect.height() / scenerect.height())
                 self.scale(factor, factor)
+                self.factor = factor
             self._zoom = 0
 
     def setPhoto(self, pixmap=None):
@@ -87,8 +90,16 @@ class PhotoViewer(QtWidgets.QGraphicsView):
 
     def mousePressEvent(self, event):
         if self._photo.isUnderMouse():
-            self.photoClicked.emit(self.mapToScene(event.pos()).toPoint())
+            if event.button() == Qt.LeftButton:
+                self.photoClicked.emit(self.mapToScene(event.pos()).toPoint())
+            elif event.button() == Qt.RightButton:
+                print('right button clicked...',event.localPos().x(), event.localPos().y())
+                self.mainUiObj.check_position_in_seed([event.localPos().x(), event.localPos().y()])
+
+
         super(PhotoViewer, self).mousePressEvent(event)
 
     # def mouseMoveEvent(self, event) -> None:
     #     print("Hover event", event.localPos().x(), event.localPos().y())
+
+    #     self.mainUiObj.check_position_in_seed([event.localPos().x(), event.localPos().y()])
